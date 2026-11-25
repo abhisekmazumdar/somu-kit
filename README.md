@@ -37,7 +37,7 @@ In Claude Code:
 
 Then turn on auto-update: `/plugin` → Marketplaces → `somu-kit` → Enable auto-update. It's off by default for third-party marketplaces.
 
-The repo is private. Installing needs git access to GitHub (SSH key or `gh auth login`). Background auto-update also needs `GITHUB_TOKEN` set in your shell, for example `export GITHUB_TOKEN=$(gh auth token)`.
+The repo is private. Claude Code uses your existing git access, not a token variable. Use an SSH key loaded in ssh-agent (test: `ssh -o BatchMode=yes -T git@github.com`), or the gh credential helper (`gh auth setup-git`, then set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`). `GITHUB_TOKEN` alone does nothing for auto-update.
 
 Or from a shell:
 
