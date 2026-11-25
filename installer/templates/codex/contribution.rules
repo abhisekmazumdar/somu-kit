@@ -1,0 +1,74 @@
+# Rules apply to commands requesting execution outside the sandbox.
+# The PreToolUse hook covers supported shell calls inside it as well.
+prefix_rule(
+    pattern = ["git", ["add", "commit", "push", "pull", "rebase"]],
+    decision = "allow",
+    justification = "Committing and pushing to the issue fork is part of the approved fix; bare --force stays blocked by the hook.",
+    match = ["git push fork HEAD", "git add src", "git rebase origin/main"],
+    not_match = ["git status", "git merge main"],
+)
+
+prefix_rule(
+    pattern = ["git", ["revert", "merge"]],
+    decision = "prompt",
+    justification = "Confirm before changing the branch's direction.",
+    match = ["git merge main", "git revert HEAD"],
+    not_match = ["git status", "git push fork HEAD"],
+)
+
+prefix_rule(
+    pattern = ["python3", ".agents/skills/drupal-gitlab/create_mr.py"],
+    decision = "allow",
+    justification = "Opens an MR from an issue fork only; it can't comment.",
+)
+
+# Prefix rules cannot skip an arbitrary -C path. Conservatively prompt for
+# escalated git -C calls; read-only in-sandbox operations still run normally.
+prefix_rule(
+    pattern = ["git", "-C"],
+    decision = "prompt",
+    justification = "Review the repository and operation before elevated Git access.",
+)
+
+prefix_rule(
+    pattern = ["glab", "api"],
+    decision = "prompt",
+    justification = "glab api can write; confirm the call before it reaches GitLab.",
+)
+
+prefix_rule(
+    pattern = ["glab", "mr", ["note", "comment", "merge", "approve", "close", "reopen"]],
+    decision = "prompt",
+    justification = "Confirm before commenting on, merging, approving, or closing the MR.",
+)
+
+prefix_rule(
+    pattern = ["glab", "mr", ["create", "update"]],
+    decision = "allow",
+    justification = "Opening an MR and marking it ready or editing its description is part of pushing the fix.",
+)
+
+prefix_rule(
+    pattern = ["glab", "issue", ["create", "note", "comment", "update", "close", "reopen"]],
+    decision = "prompt",
+    justification = "Confirm before posting or changing anything on the issue.",
+)
+
+prefix_rule(
+    pattern = ["glab", ["ci", "pipeline"], "run"],
+    decision = "prompt",
+    justification = "Confirm before triggering a pipeline.",
+)
+
+# Prefix rules cannot skip a leading -R/--repo; conservatively prompt.
+prefix_rule(
+    pattern = ["glab", ["-R", "--repo", "--hostname"]],
+    decision = "prompt",
+    justification = "Review the GitLab operation before elevated glab access.",
+)
+
+prefix_rule(
+    pattern = ["drupalorg", ["issue:assign", "issue:unassign", "issue:reassign", "issue:label", "issue:unlabel", "issue:relabel", "issue:fork", "issue:get-access", "self:update"]],
+    decision = "prompt",
+    justification = "Confirm before posting a /do: command to the issue or updating the CLI.",
+)

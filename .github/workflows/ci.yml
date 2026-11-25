@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax check
+        run: |
+          for f in installer/bin/*.js; do node --check "$f"; done
+          bash -n installer/templates/hooks/block-dangerous-git.sh
+
+      - name: Installer, configuration, and command guard tests
+        run: node --test installer/tests/*.test.js
+
+      - name: Validate skill and agent frontmatter
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          let failed = false;
+          function fail(msg) { console.error(msg); failed = true; }
+          function checkFrontmatter(file, expectedName) {
+            const content = fs.readFileSync(file, 'utf8');
+            const block = content.match(/^---\n([\s\S]*?)\n---/);
+            if (!block) { fail(file + ': missing --- frontmatter block'); return; }
+            const fm = block[1];
+            const name = fm.match(/^name:\s*(\S+)\s*$/m);
+            if (!name) fail(file + ': missing name: field');
+            else if (name[1] !== expectedName) fail(file + ': name \'' + name[1] + '\' does not match \'' + expectedName + '\'');
+            if (!/^description:/m.test(fm)) fail(file + ': missing description: field');
+          }
+          for (const skill of ['core', 'drupal', 'drupal-contrib'].flatMap(p => fs.readdirSync(path.join(p, 'skills')).map(s => path.join(p, 'skills', s)))) {
+            const skillDir = skill;
+            if (!fs.statSync(skillDir).isDirectory()) continue;
+            const skillFile = fs.readdirSync(skillDir).find(f => f.toLowerCase() === 'skill.md');
+            if (!skillFile) { fail('Missing SKILL.md in ' + skillDir); continue; }
+            checkFrontmatter(path.join(skillDir, skillFile), path.basename(skill));
+          }
+          for (const agent of fs.readdirSync('drupal-contrib/agents')) {
+            if (!agent.endsWith('.md')) continue;
+            checkFrontmatter(path.join('drupal-contrib/agents', agent), path.basename(agent, '.md'));
+          }
+          if (failed) process.exit(1);
+          console.log('All skill and agent frontmatter OK');
+          "
+
+      - name: Validate template variables
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          const knownVars = new Set(['DDEV_PROJECT','SITE_URL','PHP_VERSION','MARIADB_VERSION','DRUPAL_PATH','DRUPAL_WEBROOT','DRUPAL_CLI_BIN','SITES_TABLE']);
+          function scanDir(dir) {
+            const found = new Set();
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+              const p = path.join(dir, entry.name);
+              if (entry.isDirectory()) { for (const v of scanDir(p)) found.add(v); }
+              else { for (const m of fs.readFileSync(p, 'utf8').matchAll(/\{\{([A-Z_]+)\}\}/g)) found.add(m[1]); }
+            }
+            return found;
+          }
+          let failed = false;
+          for (const dir of ['drupal/skills', 'drupal-contrib/skills', 'drupal-contrib/agents']) {
+            if (scanDir(dir).size) { console.error('Template variables are forbidden in ' + dir); failed = true; }
+          }
+          for (const v of new Set([...scanDir('drupal/skills'), ...scanDir('drupal-contrib/skills'), ...scanDir('drupal-contrib/agents'), ...scanDir('installer/templates')])) {
+            if (!knownVars.has(v)) { console.error('Unhandled template variable: {{' + v + '}}'); failed = true; }
+          }
+          if (failed) process.exit(1);
+          console.log('All template variables covered');
+          "
+
+      - name: Validate settings.json template
+        run: |
+          node -e "
+          const fs = require('fs');
+          const content = fs.readFileSync('installer/templates/settings.json.template', 'utf8').replace(/\{\{[A-Z_]+\}\}/g, 'placeholder');
+          try { JSON.parse(content); console.log('settings.json.template is valid JSON'); }
+          catch (e) { console.error('settings.json.template invalid JSON:', e.message); process.exit(1); }
+          "

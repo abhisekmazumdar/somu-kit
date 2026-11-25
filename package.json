@@ -1,0 +1,19 @@
+{
+  "name": "somu-kit",
+  "version": "1.0.0",
+  "description": "Abhisek Mazumdar's skills. npx installs the Drupal contribution toolkit (drupal + drupal-contrib skills and agents) into a workspace for Claude Code and Codex.",
+  "bin": {
+    "drupal-claude-skills": "./installer/bin/setup.js"
+  },
+  "files": [
+    "installer/bin/",
+    "installer/templates/",
+    "drupal/skills/",
+    "drupal-contrib/skills/",
+    "drupal-contrib/agents/"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

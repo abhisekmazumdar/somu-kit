@@ -1,0 +1,112 @@
+# drupal-claude-skills
+
+[![CI](https://github.com/abhisekmazumdar/somu-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/abhisekmazumdar/somu-kit/actions/workflows/ci.yml)
+
+A shared Drupal contribution toolkit for Claude Code and Codex. Install it into your Drupal workspace to investigate issues, review merge requests, push fixes to an MR for you to review, run independent tests, and keep issue records across sessions.
+
+[Full documentation](https://abhisekmazumdar.github.io/somu-kit/) covers the skills, agents, multi-site workflow, and [client compatibility](https://abhisekmazumdar.github.io/somu-kit/#clients).
+
+The workflows support [Drupal.org's AI contribution policy](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal). You remain responsible for reviewing submissions, disclosing AI use, and following up with maintainers.
+
+## Requirements
+
+- Node.js 18+ and Python 3 on the host.
+- Claude Code, Codex CLI/IDE, or both, installed and authenticated.
+- A DDEV Drupal workspace for local code checks and browser tests.
+- [drupalorg-cli](https://github.com/mglaman/drupalorg-cli) on PATH, with PHP available to launch its MCP server.
+- [glab](https://gitlab.com/gitlab-org/cli), authenticated against `git.drupalcode.org`.
+- Network access for optional upstream skill downloads. Failures print manual installation commands.
+
+Codex needs repository skills, standalone custom agents, and `PreToolUse` hooks. Local configuration/rule checks used Codex CLI 0.153.4; Claude Code 2.1.236 was present during development; agent skill loading was verified on 2.1.309. This is not a claim that a live Drupal issue has been exercised end-to-end in either client. Cloud sessions without access to your DDEV environment cannot run its local tests. Codex adds a `Co-authored-by: Codex` commit trailer when your ChatGPT account or workspace enables commit attribution. That's an account setting the installer can't change, so turn it off there if you want the AI disclosure to be the only attribution.
+
+## Install
+
+Run from the Drupal workspace, not this package's source directory:
+
+```bash
+# Existing command stays compatible: defaults to Claude Code on first install
+npx github:abhisekmazumdar/somu-kit
+
+# Install for both clients
+npx github:abhisekmazumdar/somu-kit --target both
+
+# Or select one client
+npx github:abhisekmazumdar/somu-kit --target codex
+npx github:abhisekmazumdar/somu-kit --target claude-code
+
+# Preview without writing or downloading
+npx github:abhisekmazumdar/somu-kit --target both --dry-run
+```
+
+For a local checkout, use `npx /path/to/somu-kit --target both`.
+Use `--yes` to accept detected defaults and `--skip-external` to skip upstream downloads (already-installed external skills are kept).
+The installer detects Drupal at the workspace root or in top-level subdirectories and records site settings for future runs.
+
+## What gets installed
+
+| Shared | Claude Code | Codex |
+|---|---|---|
+| `.drupal-contrib/context.md`: site table and workflow | `CLAUDE.md`: entry instructions | `AGENTS.md`: entry instructions |
+| `.drupal-contrib/agents/`: complete role procedures | `.claude/agents/*.md` | `.codex/agents/*.toml` |
+| Same source skills and helper scripts | `.claude/skills/` | `.agents/skills/` |
+| Shared command guard logic | `.claude/settings.json` and hooks | `.codex/config.toml`, hooks, and rules |
+| `.drupal-contrib/install.json`: settings and file ownership | `.mcp.json`: drupalorg-cli MCP | MCP entry in `.codex/config.toml` |
+
+Skills, agents, and hook scripts always update to the shipped version, overwriting local edits. Everything else (settings, MCP config, `context.md`) auto-updates only while unchanged: your edits and symlinks are preserved and a proposed replacement lands under `.drupal-contrib/proposals/` for you to merge by hand before relying on it. To keep a customized skill, agent, or hook, list its path (or a directory ending in `/`) in `.drupal-contrib/install.json`:
+
+```json
+"localOverrides": [".claude/agents/drupal-issue-agent.md", ".drupal-contrib/agents/drupal-issue-agent.md"]
+```
+
+Listed files get the same treatment as settings: kept when they differ, never deleted, upstream version proposed. Listing a skill you deleted on purpose (e.g. `".claude/skills/drupal-issue-reroll/"`) keeps it deleted. Upgrading from a legacy install (no ownership hashes)? That happens once, automatically, importing the old lockfile's answers.
+
+In Claude Code, approve the project MCP server when prompted and inspect it with `/mcp`.
+In Codex, trust the workspace and review/trust the command hook through `/hooks`. Hooks awaiting trust do not protect commands.
+
+## Use
+
+Claude Code:
+
+```text
+/drupal-issue-start https://www.drupal.org/project/ai/issues/3499692
+```
+
+Codex CLI/IDE:
+
+```text
+$drupal-issue-start https://www.drupal.org/project/ai/issues/3499692
+```
+
+The entry skill loads prior context, fetches issue/MR activity, performs automatic local recon, and presents a verdict and next action. It delegates to four roles:
+
+| Agent | Responsibility |
+|---|---|
+| Nora (`drupal-issue-agent`) | Review, implementation, and fixes |
+| Wren (`drupal-repo-setup`) | Repository, branch, worktree, and dependency setup |
+| Milo (`drupal-e2e-tester`) | Independent PHPUnit/Playwright testing; never fixes module code |
+| Sage (`drupal-issue-catchup`) | Briefing on changes since the previous session |
+
+To map what a diff touches before reading it (services, hooks, plugins, routes, config schema, and their consumers), run `/drupal-impact <module-path>` on its own, or install just that skill with `npx skills add abhisekmazumdar/somu-kit --skill drupal-impact` (offline: copy `skills/drupal-impact/` into your skills directory; the script is plain `python3 drupal_impact.py <module-dir>`).
+
+`/drupal-issue-start` stops once, with a readiness checklist and the steps it will take. Say go and it reviews, fixes, commits, pushes to the issue fork, and opens or updates the MR — you review the code there. Comments are never posted for you: drafts go to `issues/<nid>/drafts/`. Hooks and client permissions supplement these workflow instructions; they are not identical security boundaries across clients.
+
+Both clients use `issues/<nid>/README.md` and archived `history.md`. You can resume an issue in the other client. Avoid concurrent writes to the same record or checkout.
+
+## Update and develop
+
+Re-run the installer to update package-owned files and install missing upstream skills. After adding another target, future runs without `--target` update all recorded targets. No target is uninstalled implicitly.
+
+Use `npx skills update` for upstream skills; resolve any proposed `skills-lock.json` integration first, then re-run this installer to restore missing Codex invocation-policy metadata.
+
+The package uses Node built-ins and has no build step:
+
+```bash
+node --check bin/setup.js
+node --test tests/*.test.js
+```
+
+Tests require Python 3.11+ for TOML validation. CI also validates skill/agent frontmatter and template variables. Source lives in `skills/`, `agents/`, `templates/`, and `bin/`; the hand-written reference is `docs/index.html`.
+
+## License
+
+MIT

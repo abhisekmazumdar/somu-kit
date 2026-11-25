@@ -1,0 +1,228 @@
+# CLAUDE.md
+
+Guidance for Claude Code working on this repo.
+
+## What this repo is
+
+A **Claude Code skills and agents package** for Drupal open source contribution — not a Drupal project. No PHP, no Composer, no web server. This repo's output is a set of files installed into a user's Drupal workspace via `npx github:abhisekmazumdar/somu-kit` (or `npx /path/to/local/clone`, see README.md).
+
+---
+
+## Repository layout
+
+```
+core/                    # generic skills, Claude Code plugin only (never mentions Drupal)
+drupal/skills/           # skills for any Drupal project
+drupal-contrib/
+  skills/                # drupal.org + GitLab contribution skills
+  agents/                # agent markdown files
+installer/
+  bin/
+    setup.js             # CLI entry point
+    install.js           # writer()/installTargets(): the actual file-writing logic
+    external-skills.js   # pulls externalSkills at install time
+    local-setup.js       # applies the git-ignored installer/local.json (personal settings)
+  templates/
+    CLAUDE.md.template, AGENTS.md.template   # rendered with {{VAR}} substitution
+    settings.json.template
+    codex/               # Codex-specific config/rules/hooks templates
+    hooks/
+      block-dangerous-git.sh   # copied verbatim, chmod +x'd
+      check-command.py         # Codex's equivalent guardrail (no {{VAR}} either)
+  tests/                 # node --test, run in CI; tests/layout.js maps paths
+docs/index.html          # hand-written reference site, see below
+```
+
+The installer flattens `drupal/skills/` and `drupal-contrib/skills/` into 1 skills root in the target workspace. It never installs `core/`.
+
+Short paths below: `bin/`, `templates/` and `tests/` are under `installer/`. `skills/<name>` is in `drupal/skills/` or `drupal-contrib/skills/`. `agents/` is `drupal-contrib/agents/`.
+
+---
+
+## Common commands
+
+No build step, no `npm run` scripts. CI (`.github/workflows/ci.yml`) runs these; run the same after touching `bin/`, `skills/`, `agents/`, or `templates/`:
+
+```bash
+node --check installer/bin/*.js
+node --test installer/tests/*.test.js   # includes tests/docs-sync.test.js — see below
+grep -rn "{{" drupal/skills drupal-contrib/skills drupal-contrib/agents   # must be empty — {{VAR}} only belongs in templates/
+node -e "JSON.parse(require('fs').readFileSync('installer/templates/settings.json.template','utf8').replace(/\{\{[A-Z_]+\}\}/g,'placeholder'))"
+```
+
+See "Testing setup changes" below to exercise `bin/setup.js` end-to-end.
+
+---
+
+## Key conventions — read before editing anything
+
+### `docs/index.html` — keep it in sync
+
+Hand-written, not generated. Holds the reference detail `README.md` deliberately skips (README stays a quickstart). **Changed a skill, agent, external skill, or a convention below? Check `docs/index.html`.** `tests/docs-sync.test.js` (CI) catches the mechanical half automatically — every skill/agent/externalSkill needs a matching table row, both directions, so a rename or removal fails CI instead of drifting. It doesn't check prose (role descriptions, the issue-record format, conventions) — that's still a manual check.
+
+### `{{VAR}}` lives only in `templates/`
+
+Skills and agents are copied verbatim — never `{{VAR}}`. They reference project paths with angle brackets instead (`<webroot>`, `<drupal-path>`, `<MODULE_PATH>`), resolved by Claude from the installed `CLAUDE.md` context at runtime. `grep -r "{{" skills/ agents/` before editing either — any match is a bug.
+
+### Multi-site support
+
+A workspace can hold more than one Drupal install. `bin/setup.js` detects every top-level Drupal root, names each a **site**, marks one **default**, and renders the result into `CLAUDE.md`'s `## Local environments` table via a `{{SITES_TABLE}}` var assembled in JS (the template substitution can't loop). The lockfile (`.claude/claude-skills.lock.json`) stores `{ sites: {...}, defaultSite }`; older single-site lockfiles migrate automatically, no re-prompting.
+
+Site selection happens exactly **once** — `drupal-issue-start` Phase 0.5, matching the user's wording against the table (falling back to Default). `<site>`/`<webroot>`/`<drupal-path>`/DDEV project/site URL flow downstream unchanged through `drupal-repo-setup`, `drupal-issue-agent`, `drupal-e2e-tester`, `drupal-issue-catchup` — none of them re-resolve or re-prompt. Most skills below that point (`drupal-clone-contrib`, `drupal-issue-reroll`, `drupal-coding-standards`, etc.) need no site-awareness at all; they just operate on whatever module dir they're handed. One exception: DDEV has no `-C`/`--project` flag, so any `ddev` command must run with cwd inside that site's root — noted once per agent that shells out to `ddev`, not repeated per call site.
+
+### Skills are self-contained
+
+Every `skills/<name>/SKILL.md` works without knowing the specific Drupal project layout. Path detection happens inside the skill (`find . -name "vendor/bin/phpcs"`), never baked in at install time.
+
+`drupal-impact` is the read-only, deterministic diff scanner (stdlib Python, no LLM) — so it has no `disable-model-invocation`.
+
+### Installer file-management model
+
+`bin/install.js`'s `writer()` treats installed files three ways, chosen by whether a project is ever expected to hand-edit that file. **Adding a new installed file? Pick one explicitly** — don't assume `write`/`copy`'s conflict-safe default fits.
+
+- **Force-managed** (`forceWrite`/`copyManaged`): `skills/`, `agents/` (every rendered form), the Git-guardrail hook scripts. Pure toolkit output, never customized per project — every re-run makes the destination match this package version exactly. A local edit gets silently overwritten; a skill/agent removed upstream gets deleted from the project (only paths this toolkit itself wrote, per the lockfile's `files` map — a user's own file under the same directory is never touched). Sole exception: paths (or `/`-terminated prefixes) in the lockfile's `localOverrides` array — `forceWrite` keeps a differing existing copy and routes the shipped content through the same `propose()` stash `write()` uses, doesn't re-create one the project deleted after a previous install wrote it, and `prune()` never deletes them. External skills share the skills root, so `installTargets` passes their recorded paths as `preserve` to the skills `copyManaged` — otherwise every re-run prunes them (permanently under `--skip-external` or offline). `setup.js` carries `localOverrides` forward when it rewrites the lockfile. `copyManaged` takes optional `renameFile`/`transformContent` (the Codex `.md`→`.toml` conversion), a `shallow` flag (skip an agent's `references/` subfolder), and `preserve` (paths a sibling `forceWrite` call owns — skip these or `prune()` deletes-then-lets-them-get-readded, which reorders the lockfile's `files` map and breaks idempotency).
+- **Merged** (`upsertBlock`): `CLAUDE.md`/`AGENTS.md`. These commonly pre-exist with the project's own content, so the toolkit's block is wrapped in `<!-- drupal-contrib-claude-skills:begin/end -->` markers and upserted in place (appended if no markers yet). Everything outside the block is the project's own, never touched. If `CLAUDE.md`/`AGENTS.md` resolve to the same real file (one symlinked to the other), treat the whole shared file as off-limits — propose instead of force-writing, for both targets, or whichever target runs first mutates it before the second ever notices it's shared.
+- **Preserved** (`write`/`copy`): everything else — `.claude/settings.json`, `.mcp.json`, `.codex/config.toml`/`hooks.json`/rules, `.drupal-contrib/context.md`. A package update applies automatically only if the file on disk still matches what the toolkit last wrote (per lockfile content hash); a hand-edited file is left alone and the new version is stashed at `.drupal-contrib/proposals/<path>` for manual merge.
+
+### `disable-model-invocation` — only for skills with no gate of their own
+
+Two skills set it: `drupal-clone-contrib` (runs `git clone` immediately, no internal confirmation) and `drupal-issue-reroll` (runs `git rebase` in Step 3 and force-pushes in Step 5, both unprompted). Both are only ever invoked after `drupal-issue-start`'s go (or an explicit `/drupal-issue-reroll`); triggering them straight from a passing mention would skip that gate. Every other skill is read-only, writes only append-only to `issues/<nid>/`, or already gates its own writes — those stay auto-triggerable. Add a skill that mutates git/disk with no pause of its own? Set this field.
+
+The flag also keeps a skill out of an agent's `skills:` preload and out of the model's Skill tool (verified on 2.1.309: listed in `skills:`, its content never arrives). So never list a flagged skill in an agent's `skills:`. For these two local skills, the agent reads `<skills-root>/<name>/SKILL.md` at the gated step that names it — our own flag, set only against passing mentions. External flagged skills are different: their authors reserved them for the user, and Claude Code tells the model not to imitate them — see below. Agents load skills only where used: Nora doesn't preload `drupal-issue-start` (its caller, which hands it everything) or anything Wren does. `tests/agent-skills.test.js` enforces both.
+
+### External skills are pulled, not vendored
+
+None live in this repo — `bin/setup.js` pulls all of them at install time via the `externalSkills` loop:
+
+| Skill | Upstream repo | Wired in at |
+|---|---|---|
+| `playwright-cli` | `microsoft/playwright-cli` | `drupal-e2e-tester` Phase 3, browser e2e |
+| `drupalorg-cli` | `mglaman/drupalorg-cli` | `drupal-issue-start` and others, Drupal.org issue/MR data |
+| `how` | `cursor/plugins` | user-run; suggested in `drupal-issue-agent`'s final report when A3/B2 left the code unclear |
+| `blast-radius` | `cursor/plugins` | user-run; suggested in `drupal-issue-agent`'s final report on the saved `drupal-impact` report when it has a HIGH/MEDIUM piece |
+| `unslop` | `cursor/plugins` | user-run; suggested under every draft from `drupalorg-comment-format` |
+| `technical-writing` | `cursor/plugins` | user-run; suggested alongside `unslop`, for structure |
+| `interrogate` | `cursor/plugins` | user-run; offered in `drupal-issue-agent`'s final report for a second opinion on the verdict |
+| `why` | `cursor/plugins` | user-run; suggested in `drupal-issue-catchup`'s briefing when a design decision is unexplained |
+| `tdd` | `cursor/plugins` | user-run; suggested in the final report for a bug fix with a cheap Unit/Kernel test target |
+| `diagnosing-bugs` | `mattpocock/skills` | `drupal-issue-agent` A1, fallback for unrecognized CI failures |
+| `wizard` | `mattpocock/skills` | `drupal-repo-setup` Step 7, setup issues → runnable fix-it script |
+
+```bash
+npx -y skills@latest add <owner/repo> --skill <name> --agent claude-code --copy -y
+```
+
+Never copy their contents into `skills/` — updated via `npx skills update`. Each pull is non-fatal (offline prints the manual command and continues). Adding another: append to the `externalSkills` array in `bin/setup.js`, don't write a new bespoke block. `cursor/plugins` skills nest under `pstack/skills/<name>`; all seven (`how`, `why`, `blast-radius`, `interrogate`, `tdd`, `unslop`, `technical-writing`) ship `disable-model-invocation: true` — reserved for the user. The flow never runs, reads or imitates them; it ends the relevant report with a **You run** line (the `/name` or `$name` command and why now), only when its condition holds. That's the point of pulling them: the human gets reminded at the moment each one pays off. The loop groups by `repo` and pulls each repo's skills in one call — repeated `--skill` flags work, a comma-separated value silently falls back to an interactive picker and installs nothing.
+
+`writing-for-agents` (`mattpocock/skills`) and the `principle-*` micro-skills (`cursor/plugins`) are useful only for maintaining *this* repo, not an installed Drupal workspace — deliberately not in `externalSkills`. Pull them into this repo's own `.claude/skills/` for local dev only (`.gitignore` excludes `.claude/` for exactly this reason).
+
+### Git guardrail hook
+
+`templates/hooks/block-dangerous-git.sh` hard-blocks `git reset --hard`, `git clean -f`/`-fd`, `git branch -D`, `git checkout .`/`git restore .` — regardless of the `allow` list — since these discard local work with no recovery. **`git push`, including `--force-with-lease`, is deliberately not blocked**: `drupal-issue-reroll` force-pushes to the user's own issue fork as a normal step, already guarded by `--force-with-lease` (bare `--force` is blocked) — it runs without a prompt. Adding a blocked pattern? Check first that no skill's workflow relies on it: `grep -rniE "git (reset --hard|clean -f|branch -D|checkout \.|restore \.)" skills/ agents/`.
+
+**Anything posted in the user's name or that changes direction asks, never blocks; committing, pushing, and opening an MR don't ask.** `git commit`/`push`/`pull`/`rebase`, `glab mr create`/`update`, and `drupal-gitlab`'s `create_mr.py` are in `allow` — MRs are cross-project, so they go through that script (issue-fork-only, refuses a body without the AI disclosure) rather than raw `glab api`. GitLab comments and direction changes (`glab mr` note/comment/merge/approve/close, `glab issue` writes, raw `glab api`, `ci run`), `drupalorg`'s `/do:`-posting `issue:*` commands, `git merge`/`revert`, and work-discarding `git stash drop`/`clear` and `git checkout -- <path>` sit in `settings.json.template`'s `ask` tier (Codex: `decision = "prompt"` in `contribution.rules`) — the hook leaves them alone. Ask rules may start with `*` (`Bash(*glab*mr note*)`): ask/deny match past any leading env assignment, and over-matching only costs a prompt. Allow rules must start with the literal command, `GITLAB_HOST=git.drupalcode.org` prefix included — allow rules don't match past a non-safe env assignment, and a leading `*` auto-approves any command containing the text. `tests/permissions.test.js` enforces both.
+
+The same script (`check-command.py`, for Codex, which has no per-tool file permission concept) also blocks reading and writing secret material — `cat`/`grep`/`head`/`cp`/`curl` etc. on one side, `tee`/`dd`/`install`/shell redirection on the other — matching `.env*` (except `.example`/`.sample`/`.dist`/`.template`/`.defaults`/`.test`), `*.pem`/`*.key`/`*.pfx`/`*.p12`, `id_rsa*`/`id_ed25519*`, `.netrc`/`.npmrc`, and anything under `secrets/`/`.ssh/`/`.aws/`. Reuses the hook's tokenizer and shell-`-c` unwrapping, so `bash -c "cat .env"` doesn't slip through. See `READ_BINARIES`/`WRITE_BINARIES`/`SECRET_GLOBS`/`SECRET_DIR_NAMES` to extend it. `templates/settings.json.template`'s `deny` list adds the Claude-Code-only complement — `Edit(...)` denials on the same paths (never `Write(...)`: Claude Code's matcher only checks `Edit(path)` for write checks, so a `Write(...)` deny rule is dead weight the harness flags as unenforced). Both layers are best-effort string/glob matching, not a sandbox.
+
+### AI disclosure — one format only
+
+Every drafted issue, MR description, and comment ends with the disclosure defined in `drupalorg-comment-format` (links to the Drupal.org policy; never a tool or model name). On GitLab it's a `<details>` block with a visible "AI disclosure" summary, collapsed so it doesn't take space — the policy link goes in the body, since a link in `<summary>` only toggles. Classic Drupal.org keeps the one-line HTML form, because `<details>` isn't verified to survive its text filter. The same literal GitLab block lives in `drupal-gitlab` and the `CLAUDE.md`/`AGENTS.md` templates; `tests/disclosure.test.js` fails if any copy drifts or a legacy format returns. `settings.json.template` blanks Claude Code's `attribution` (`commit`/`pr` empty, `sessionUrl: false` — not `attribution: false`, which pre-2.1.281 versions reject along with the whole file), so no `Co-Authored-By` trailer competes with it. Codex has no equivalent the installer can set: its `Co-authored-by: Codex` trailer and `Generated with Codex` PR line follow a server-side ChatGPT account/workspace policy (`commit_attribution_enabled`, fetched at runtime, off for API-key logins). The old `commit_attribution` config key and `codex_git_commit` feature flag are removed, and the injected policy tells Codex to ignore instructions disabling it — so `AGENTS.md` can't override it either. Documented as a user-side step, not automated.
+
+### Guiding philosophy — move issues toward RTBC, don't just find things
+
+Every review — the light one in `drupal-issue-start` Phase 2.5, the full one in `drupal-issue-agent`'s A9 — ends with a **judgment call**: RTBC-ready, close with a named gap, needs work, or needs discussion. The goal is a mergeable, community-acceptable contribution, not an exhaustive findings list. Cosmetic nitpicks that don't block correctness/security/standards get mentioned once and set aside; don't pad a review with them to look thorough. Change one review layer's framing, check the other matches.
+
+### `references/` subfolder — reference material, not procedure
+
+Keep `agents/*.md` and `SKILL.md` lean, but never fragment a sequential gated procedure — `drupal-issue-agent`'s A1-A11/B1-B5 phases stay inline, splitting them would break the agent's ability to track which phase it's resuming from after a blocker `[PAUSE]`. What belongs in `references/`: a lookup consulted only on one specific branch, not the always-active flow — e.g. `agents/drupal-issue-agent/references/ci-failure-patterns.md`, read only when A1 finds a failing pipeline. No `setup.js` changes needed; `copyManaged` already recurses. Before adding one: is this really a rare-branch lookup, or core sequence/an always-consulted checklist (like A7's)? If the latter, keep it inline.
+
+### Security issues stay private
+
+`drupal-issue-start` Phase 0 also accepts `git.drupalcode.org/security/<sec-nid>-<slug>/-/work_items/<iid>` (and `/-/issues/<iid>`), setting `is_security=true` and `<security_repo>`. `<nid>` becomes the record key `security-<sec-nid>-<iid>` (item numbers restart per security repo), used only for `issues/<nid>/`. Phase 2 fetches from `<security_repo>` only, Phase 2.5 skips recon, and `drupal-issue-agent`'s "Security issues" section overrides checkout and push: work in the existing module checkout on `security-<iid>`, commit locally, never push, never open an MR, never touch `issue/` or `project/` repos — a push there would disclose the fix before the advisory. `create_mr.py`'s `issue/`-only check is the backstop. Pushing or opening MRs in the security repo itself is deliberately not automated until its branch/MR conventions are verified. `drupal-issue-catchup` reads the same repo. `tests/security-issues.test.js` keeps the pattern and the no-push rule in all three.
+
+### Agent handoff pattern
+
+Four agents, each with a persona name as a body-level identity — cosmetic only. The frontmatter `name:` (matching the filename) is what every invocation actually uses. **Never invoke by persona name, never change `name:` to match it.**
+
+| File | `name:` | Persona | Role |
+|---|---|---|---|
+| `drupal-issue-agent.md` | `drupal-issue-agent` | Nora | Full review/implement/fix loop — the only agent that edits module code |
+| `drupal-e2e-tester.md` | `drupal-e2e-tester` | Milo | Test phase (PHPUnit + Playwright) — report-only, never edits code |
+| `drupal-repo-setup.md` | `drupal-repo-setup` | Wren | Git/repo plumbing — locate, clone, install deps, checkout/worktree. `recon` and `preapproved: yes` run unpaused |
+| `drupal-issue-catchup.md` | `drupal-issue-catchup` | Sage | Re-briefs after time away — diffs new activity against the local record |
+
+`drupal-issue-agent` is always invoked by `drupal-issue-start`; its Phase 0/1 are intentionally thin, receiving pre-parsed context rather than re-fetching it. Don't add URL-parsing or issue-fetching logic back to the agent — that belongs in the skill.
+
+`<site>` (and its resolved `<webroot>`/`<drupal-path>`) flows through this whole chain with `<nid>`/`<project>`, resolved once in `drupal-issue-start` Phase 0.5, never re-resolved downstream.
+
+**One stop, then run to the MR.** `drupal-issue-start` Phase 4 ends with the only stop: a **Ready to go?** checklist (clone, deps, fork, push access, branch, drift, DDEV, `glab` login) and a numbered **What I'll do on go** list. The human's go is passed to `drupal-issue-agent` as `preapproved: yes` plus that scope, and the agent runs review → fixes for every blocking finding → reroll → preflight → commit → push to the issue fork → open/update the MR (ready, not draft) with no further pause; the human reviews the code on GitLab. The review goes to `issues/<nid>/review-<date>.md`, a Path B plan to `issues/<nid>/plan.md`, every comment draft to `issues/<nid>/drafts/` — never posted. Don't add a mid-run approval gate back; the agent stops only on a real blocker (failing preflight, an approach-changing open question, a reroll conflict between two intentional changes).
+
+Sub-agents can't talk to the user mid-run, so that blocker uses a **pause-relay protocol**: the agent ends with `[PAUSE — awaiting user decision]`, `drupal-issue-start` relays it verbatim, the agent resumes on reply. Keep this intact — don't add a gate that assumes the agent can converse directly.
+
+`drupal-e2e-tester` is deliberately **report-only** — the implementing agent must never verify its own work.
+
+`drupal-repo-setup`'s `probe`/`checkout`/`worktree` modes gate every write (clone, `composer require`, checkout, worktree) behind their own `[PAUSE]` — unless the caller passes `preapproved: yes` (the human said go), which skips them all. Its **`recon` mode** (used only by `drupal-issue-start` Phase 2.5) runs clone/checkout/fork-remote automatically, no pause — local and reversible — and only *reports* missing Composer dependencies, so they land on the go checklist instead of being installed before the human sees them. `recon` surfaces access/setup problems in a `## Setup issues` block instead of pausing; `drupal-issue-start` relays it verbatim. If `drupal-issue-agent` already received a recon'd `<module_dir>`/`<branch>`, it confirms the checkout still matches instead of re-invoking `drupal-repo-setup`.
+
+`drupal-issue-catchup` never edits code — diffs new activity against `issues/<nid>/README.md`, briefs, waits for direction, and re-derives the `## At a Glance` verdict/next-action/blocker when new activity changes them.
+
+`drupal-related-issues` (`find_related_issues.py`) catches cross-references that only exist in *other* local issue records — a one-directional read of the current issue's own comments misses these. Merged into `## Related Issues`, append-only, labeled by source.
+
+### `issues/<nid>/README.md` format
+
+Written by `drupal-issue-start` Phase 3, appended to by `issue-record-update`. `## At a Glance` (the review card — verdict, a fixed set of ✅/❌/⚠️/⏳/➖/❔ checks, and one owned next step; format in `skills/issue-record-update/references/review-card.md`, shared by every report that ends a review, in both the contributor and merge-maintainer flows) and `## Current State` (MR list, setup issues, latest discussion) are **snapshots, overwritten in place** every time — unlike `## Work Log`/`## Related Issues`, which are append-only. `▶ Next`/`⏸ Waiting on` come only from the *current* session, never accumulated, or they go stale. Both sections use the `technical-writing`/`unslop` skills when installed. `**Status:**` is normalized to a fixed vocabulary (see "Status vocabulary" in `drupal-issue-start`); `**Last updated:**` refreshes every session. `**Site:**` appears only once the workspace has 2+ sites configured — single-site workspaces render with no line at all. Adding a section? Decide explicitly which behavior it needs and say so in the template comment.
+
+`issue-record-update` runs **automatically** at the end of any session that did something — reviewed, changed, tested, pushed. A pure read-only catchup skips it, so the Work Log doesn't fill with empty entries. The human can still trigger it manually.
+
+**Work Log archiving:** unbounded growth means every future session re-pays the cost of the whole history. `issue-record-update` Step 6 caps `## Work Log` at the 3 most recent sessions, archiving older ones to `issues/<nid>/history.md` (newest-archived first). Neither `drupal-issue-start` nor `drupal-issue-catchup` reads `history.md` by default — only when a session genuinely needs pre-archive context.
+
+**Linked workspaces:** one person can keep records for the same nid in two workspaces (e.g. a contributor workspace and a merge-maintainer one), and each goes stale without the other. `.drupal-contrib/linked-workspaces.md` (hand-written, never installer-managed — so it doesn't push `context.md` into the proposals path) lists the others by absolute path. `drupal-issue-start` Phase 1 and `drupal-issue-catchup` Step 1 read each linked `issues/<nid>/README.md` — header, At a Glance, Current State only, strictly read-only — and the report/briefing flags which record is stale, with Phase 2's live state as the tiebreaker.
+
+**Work log (opt-in):** `.drupal-contrib/work-log.md` (never toolkit-owned output, same reason — only `local.json` below may create it, and never overwrites) holds one command — its first non-blank, non-`#` line — for an external log such as a weekly-summary notes repo. `drupal-issue-start` Phase 0 and `drupal-issue-catchup` Step 0 run `<command> "<url>" --json` on every visit; `issue-record-update` Step 7 runs `<command> "<url>" --did "<TL;DR>" --json` at the end of a session that did something. The command must skip URLs it already holds and merge repeated `--did` text into the same entry. Failures warn, never stop. The file absent means nothing runs, so other installs are unaffected. The command path is per-user, so it's never in `settings.json.template`. A git-ignored `local.json` at this repo's root (`{ "workLogCommand": "/abs/path", "workspaces": [...] }`) automates the per-user part: `bin/local-setup.js` creates `work-log.md` only if absent, adds `Bash(<command>:*)` to `.claude/settings.local.json` (Claude Code target only), and records the workspace in `workspaces`. Outside `writer()` and the lockfile on purpose — none of these are toolkit-owned. Only a local-clone install sees it (`npx github:` fetches without it). Tests set `DRUPAL_CONTRIB_LOCAL` to a missing path so a developer's real `local.json` never records temp dirs. `tests/work-log.test.js` keeps the three call sites on the same file name and flags.
+
+---
+
+## Testing setup changes
+
+```bash
+cd /path/to/drupal-workspace
+npx /path/to/this/repo
+```
+
+Then verify:
+- No `{{VAR}}` in installed skills/agents: `grep -r "{{" .claude/skills/ .claude/agents/`
+- Lockfile written: `cat .claude/claude-skills.lock.json`
+- MCP servers present: `grep -A5 mcpServers .claude/settings.json`
+
+Re-running is non-interactive once the lockfile exists.
+
+---
+
+## MCP servers
+
+`templates/settings.json.template` configures one:
+
+| Server | Binary | Purpose |
+|---|---|---|
+| `drupalorg-cli` | `{{DRUPAL_CLI_BIN}}` (via `which drupalorg`) | Drupal.org issue/MR data |
+
+`drupalorg-cli` 0.12.0 exposes 17 read-only tools. Verified 2026-09-10 against a live migrated issue (`ai` project, nid 3540491):
+
+- **Works:** `gitlab_issue_show` (full GitLab work-item URL, bypasses nid→project lookup) — title, description, state, labels, timestamps. No comments; `fetch_issue_notes.py` (`drupal-gitlab-inline-comments`) still needed for those.
+- `issue_show`'s new `withComments` param (0.12.0) returns full comment bodies, but only for **non-migrated** issues — its `nid` param is still a bare `^\d+$` pattern, no project prefix, so it still errors on a migrated nid.
+- **Still broken for migrated issues:** `mr_list`, `mr_status`, `mr_files`, `issue_get_fork` all error (`-32603`) on a migrated nid. The underlying CLI *commands* were fixed in 0.11.0 (resolve correctly given `<project>#<nid>`), but the MCP tool schemas were never updated to expose a project-prefix field — any MCP tool that resolves project from `nid` alone inherits this gap. `drupal-issue-start`'s `glab mr list --search` Bash fallback (Phase 2) is still the only working path for MR discovery on migrated issues — don't replace it with an MCP call until the schemas gain a project-prefix param (tracked at [mglaman/drupalorg-cli](https://github.com/mglaman/drupalorg-cli); re-check `tools/list` after future releases).
+- Not yet verified against a non-migrated issue — assume nid-based tools work there, since the bug is migrated-nid-specific.
+
+A native GitLab MCP for `git.drupalcode.org` is tracked at [drupal.org/project/infrastructure/issues/3557469](https://www.drupal.org/project/infrastructure/issues/3557469); needs GitLab Duo (paid, not yet available). The `@modelcontextprotocol/server-gitlab` npm workaround only exposes write tools, all deny-listed — not useful until read tools exist. Don't add it back before that infrastructure issue resolves.
+
+**Optional, not installed:** [`ddev-drupal-agent-module-knowledge-mcp`](https://github.com/Drupal-AI/ddev-drupal-agent-module-knowledge-mcp), a DDEV add-on serving agent docs for ~10,300 contrib modules. It's user-installed (`ddev add-on get` + `claude mcp add --transport http agent-module-docs http://<project>.ddev.site:9130/mcp`), never added to `settings.json.template` or `setup.js`: it mutates `.ddev/`, needs a restart and a ~130 MB DB download (~380 MB unpacked), and its URL is per-site. `drupal-issue-agent` allowlists `mcp__agent-module-docs__{search_modules,get_module,read_doc}` and uses them in A3/B2 only when present. Rename the server and those `tools:` entries stop matching.
+
+---
+
+## What not to do
+
+- Don't add `{{VAR}}` substitution to `copyManaged` calls for `skills/` or `agents/` in `bin/setup.js`
+- Don't hardcode paths like `web/modules/contrib/` into skill files — use `<webroot>`, detect at runtime
+- Don't add duplicate URL-parsing or issue-fetching logic to `drupal-issue-agent` — that's `drupal-issue-start`'s job
+- Don't add Edit tools or code-fixing steps to `drupal-e2e-tester` — report-only; fixes go back through `drupal-issue-agent` when the human asks
+- Don't add external npm dependencies to `bin/setup.js` — Node 18 built-ins only (shelling out to `npx`/`which` via `execSync` is fine)
+- Don't vendor `playwright-cli`, `drupalorg-cli`, or other upstream-maintained skills into `skills/` — setup pulls them via `npx skills add`
