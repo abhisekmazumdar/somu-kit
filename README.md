@@ -16,6 +16,7 @@ Rule: a layer only uses layers below it. `drupal-contrib` → `drupal` → `core
 
 | Skill | Use |
 |---|---|
+| `somu` | Not sure which skill fits? `/core:somu <task>` names them and the order |
 | `write-like-abhisek` | Anything I post or send as myself |
 | `skateboard-mvp` | Plan a feature as thin usable slices |
 | `reuse-first` | Check existing code, issues and MRs before building |
