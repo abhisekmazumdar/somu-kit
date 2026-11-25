@@ -4,7 +4,12 @@ Guidance for Claude Code working on this repo.
 
 ## What this repo is
 
-A **Claude Code skills and agents package** for Drupal open source contribution — not a Drupal project. No PHP, no Composer, no web server. This repo's output is a set of files installed into a user's Drupal workspace via `npx github:abhisekmazumdar/somu-kit` (or `npx /path/to/local/clone`, see README.md).
+**somu-kit**: Abhisek's skills, as 1 Claude Code plugin marketplace with 3 layers. A layer only uses layers below it: `drupal-contrib` → `drupal` → `core`. `core` never mentions Drupal.
+
+- `core/` is a Claude Code plugin (`core@somu-kit`). See README.md.
+- `drupal/` and `drupal-contrib/` hold the Drupal contribution toolkit. Today it ships through the npx installer, not as plugins: `npx github:abhisekmazumdar/somu-kit` (or `npx /path/to/local/clone`, see drupal-contrib/README.md) installs both folders' skills plus the agents, hooks and MCP config into a Drupal workspace for Claude Code and Codex. Not a Drupal project: no PHP, no Composer, no web server.
+
+Commits: never add `Co-Authored-By` or other AI credit lines.
 
 ---
 

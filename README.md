@@ -2,13 +2,13 @@
 
 "Somu" is what my childhood friends call me.
 
-My Claude Code skills, as 1 plugin marketplace with layered plugins.
+My Claude Code skills in 1 repo, in 3 layers.
 
-| Plugin | What | Where it's on |
+| Layer | What | How it's installed |
 |---|---|---|
-| `core` | Writing voice, skateboard planning, working principles | User level, every laptop |
-| `drupal` | Any Drupal project (planned) | Per project |
-| `drupal-contrib` | drupal.org + GitLab contribution (planned) | Per project |
+| `core` | Writing voice, skateboard planning, working principles | Claude Code plugin, user level, every laptop |
+| `drupal` | Any Drupal project: coding standards, DDEV, impact map, tests | npx installer, per workspace |
+| `drupal-contrib` | drupal.org + GitLab contribution: issues, MRs, reviews, agents | npx installer, per workspace |
 
 Rule: a layer only uses layers below it. `drupal-contrib` → `drupal` → `core`. `core` never mentions Drupal.
 
@@ -37,7 +37,6 @@ In Claude Code:
 
 Then turn on auto-update: `/plugin` → Marketplaces → `somu-kit` → Enable auto-update. It's off by default for third-party marketplaces.
 
-The repo is private. Claude Code uses your existing git access, not a token variable. Use an SSH key loaded in ssh-agent (test: `ssh -o BatchMode=yes -T git@github.com`), or the gh credential helper (`gh auth setup-git`, then set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`). `GITHUB_TOKEN` alone does nothing for auto-update.
 
 Or from a shell:
 
@@ -48,31 +47,23 @@ claude plugin install core@somu-kit --scope user
 
 Don't also keep a `~/.claude/skills/write-like-abhisek` symlink, or the skill loads twice.
 
-## Per project (drupal, drupal-contrib)
+## Drupal workspaces (drupal, drupal-contrib)
 
-Commit this to the project's `.claude/settings.json`:
+Run from the Drupal workspace:
 
-```json
-{
-  "extraKnownMarketplaces": {
-    "somu-kit": {
-      "source": { "source": "github", "repo": "abhisekmazumdar/somu-kit" }
-    }
-  },
-  "enabledPlugins": {
-    "drupal@somu-kit": true
-  }
-}
+```sh
+npx github:abhisekmazumdar/somu-kit --target both
 ```
 
-Or run `claude plugin install drupal@somu-kit --scope project`.
+It installs both layers' skills, the agents, a git guard hook and the drupalorg-cli MCP config, for Claude Code and Codex. Details: [drupal-contrib/README.md](drupal-contrib/README.md) and the [docs site](https://abhisekmazumdar.github.io/somu-kit/).
+
+These 2 layers aren't plugins yet. The installer sets up things a plugin can't (permissions, `CLAUDE.md` block, Codex config), so it stays the way in for now.
 
 ## Editing
 
-1. Edit `<plugin>/skills/<skill>/SKILL.md`.
-2. Bump `version` in `<plugin>/.claude-plugin/plugin.json`. Installs only update when it changes.
-3. `claude plugin validate .`
-4. Push. Other laptops pick it up on the next auto-update, or `/plugin marketplace update somu-kit`.
+1. Edit `<layer>/skills/<skill>/SKILL.md`.
+2. `claude plugin validate .` and `node --test installer/tests/*.test.js`.
+3. Push. There's no `version` field, so every commit is an update. Laptops pick it up on the next auto-update, or `/plugin marketplace update somu-kit`. Drupal workspaces: re-run the npx command.
 
 To test local changes before pushing: `claude --plugin-dir ./core`.
 
