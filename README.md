@@ -18,11 +18,11 @@ Rule: a layer only uses layers below it. `drupal-contrib` → `drupal` → `core
 |---|---|
 | `write-like-abhisek` | Anything I post or send as myself |
 | `skateboard-mvp` | Plan a feature as thin usable slices |
-| `principle-reuse-first` | Check existing code, issues and MRs before building |
-| `principle-fix-root-causes` | Fix the fault, not the symptom |
-| `principle-long-term-maintainability` | Pick what the next maintainer can live with |
-| `principle-prove-it-works` | Verify the real thing, attach proof |
-| `principle-community-first` | Open source decisions |
+| `reuse-first` | Check existing code, issues and MRs before building |
+| `fix-root-causes` | Fix the fault, not the symptom |
+| `long-term-maintainability` | Pick what the next maintainer can live with |
+| `prove-it-works` | Verify the real thing, attach proof |
+| `community-first` | Open source decisions |
 
 Skills are namespaced by plugin: `/core:skateboard-mvp`.
 

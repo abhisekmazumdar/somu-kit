@@ -1,5 +1,5 @@
 ---
-name: principle-community-first
+name: community-first
 description: "Apply in open source work: issues, reviews, MRs, roadmap and release decisions. Do what's best for the project and its community, not the quickest path for one site or one person."
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: principle-prove-it-works
+name: prove-it-works
 description: "Apply before saying a task is done, and before posting a review, comment or MR. Check the real thing (run it, read the value, inspect the diff) and attach proof: test output, a screenshot or a GIF."
 ---
 

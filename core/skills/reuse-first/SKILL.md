@@ -1,5 +1,5 @@
 ---
-name: principle-reuse-first
+name: reuse-first
 description: "Apply before writing new code, a new module, a new issue or a new MR. Search for existing code, patterns, open issues, PRs and MRs first, and extend what exists."
 ---
 

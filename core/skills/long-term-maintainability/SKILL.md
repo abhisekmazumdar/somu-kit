@@ -1,5 +1,5 @@
 ---
-name: principle-long-term-maintainability
+name: long-term-maintainability
 description: "Apply when choosing between approaches or designing a change. Prefer the option the next maintainer can read, test and change in a year, over the quickest patch."
 ---
 
