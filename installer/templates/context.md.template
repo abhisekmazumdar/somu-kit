@@ -199,6 +199,7 @@ Skills live under `<skills-root>`. Shared role procedures are installed in `.dru
 
 ### Entry point skills
 - `drupal-issue-start` — **PRIMARY ENTRY POINT**: load/create issue record, fetch live context, present report and go checklist, wait for go
+- `drupal-issue-plan` — plan a feature request or meta issue into child issues (drafts only, uses `skateboard-mvp`)
 - `issue-record-update` — append timestamped session log to `issues/<nid>/README.md` (writes directly, no confirmation)
 - `issue-record-screenshot` — capture a browser screenshot into `issues/<nid>/screenshots/` using the connected browser session
 - `drupalorg-writing` — draft and save comments to `issues/<nid>/drafts/` (HTML for Drupal.org, GFM for GitLab)
