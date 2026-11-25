@@ -1,7 +1,7 @@
 ---
 name: drupal-automated-testing
 description: >
-  Guidance for writing or modifying automated tests for Drupal modules (core, contrib, custom). Covers Functional, Kernel, FunctionalJavascript, and Unit tests; required PHPUnit attributes; test namespaces; the Functional dual-container trap; DDEV env vars; and mistakes agents often make.
+  Write, fix or run PHPUnit tests in a Drupal module (core, contrib or custom): picking Unit, Kernel, Functional or FunctionalJavascript, PHPUnit attributes, test namespaces, DDEV env vars, the Functional dual-container trap, and mistakes agents often make. Use when adding a test for a fix, when a Drupal test fails or errors, when a test passes locally but fails in CI (or the reverse), or when asked which kind of test to write.
 ---
 
 # Writing automated tests for Drupal

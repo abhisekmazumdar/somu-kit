@@ -8,6 +8,8 @@ description: >
   Use whenever an issue's context is being loaded or refreshed (issue start,
   catch-up) to keep the ## Related Issues section complete in both
   directions, not just what the current issue's own comment thread mentions.
+  Also when asked "what else mentions #12345" or "is anything blocked on
+  this issue".
 ---
 
 # drupal-related-issues
