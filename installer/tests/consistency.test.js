@@ -41,25 +41,23 @@ test('AI is never a co-decider in drafting guidance', () => {
   }
 });
 
-test('SSH remotes use git.drupal.org (git.drupalcode.org has no SSH listener)', () => {
+test('SSH remotes use 1 host: git.drupal.org', () => {
   for (const rel of [...listFiles('skills'), ...listFiles('agents')].filter(f => f.endsWith('.md'))) {
     for (const line of read(rel).split('\n')) {
-      if (/hangs|no SSH listener|not git\.drupalcode\.org/.test(line)) continue;
       assert.doesNotMatch(line, /git@git\.drupalcode\.org:/, `${rel}: ${line.trim()}`);
     }
   }
 });
 
-test('CI failure fixes fix the cause instead of silencing the check', () => {
-  const patterns = read('agents/drupal-issue-agent/references/ci-failure-patterns.md');
-  for (const row of patterns.split('\n').filter(l => l.startsWith('| `'))) {
-    const fix = row.split('|')[3] ?? '';
-    if (/ignoreErrors/.test(fix)) assert.match(fix, /only when/, `bare suppression: ${row}`);
-  }
+test('new static follows Drupal: ignore it like core, never make classes final', () => {
+  const row = read('agents/drupal-issue-agent/references/ci-failure-patterns.md').split('\n').find(l => l.includes('Unsafe usage of new static'));
+  assert.match(row, /ignoreErrors/);
+  assert.match(row, /Don't make the class `final`/);
 });
 
 test('PHPUnit guidance prefers attributes everywhere', () => {
   const standards = read('skills/drupal-coding-standards/SKILL.md');
   assert.doesNotMatch(standards, /Replace with `@covers`/, 'drupal-coding-standards tells you to drop attributes');
-  assert.match(standards, /Use attributes/);
+  assert.match(standards, /New tests use attributes/);
+  assert.match(standards, /Never remove the docblocks there/);
 });

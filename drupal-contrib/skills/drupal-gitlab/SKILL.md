@@ -47,7 +47,7 @@ When unsure of a flag or subcommand, use `glab --help` or `glab <subcommand> --h
 | SSH git operations — push, fetch, clone | `git.drupal.org` |
 
 - **API writes to the wrong hostname downgrade silently.** A `glab api` write sent with `--hostname git.drupal.org` gets redirected and downgraded to a GET — `HTTP 200` with a collection list instead of `201 Created`, no error raised. Confirm writes by checking for `201` (`-i`), not a bare `200`.
-- **SSH to `git.drupalcode.org` hangs.** The CDN front has no SSH listener on port 22 — a `git@git.drupalcode.org:…` remote will time out. Always point SSH remotes at `git@git.drupal.org:…`.
+- **SSH remotes use `git@git.drupal.org:…`**, the host drupal.org's issue fork instructions give. `git.drupalcode.org` also answers SSH (checked Nov 2026), but keep 1 host so remotes match across tools.
 
 ```bash
 # glab commands always resolve git.drupalcode.org via --repo/-R
@@ -123,7 +123,7 @@ Click **"Create issue fork"**.
 ### Set up remotes and push
 
 ```bash
-# SSH remote (uses git.drupal.org — not git.drupalcode.org)
+# SSH remote (uses git.drupal.org)
 git remote add <project>-<issue-id> git@git.drupal.org:issue/<project>-<issue-id>.git
 
 # Branch naming

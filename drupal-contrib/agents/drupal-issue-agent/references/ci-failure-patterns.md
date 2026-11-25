@@ -9,7 +9,7 @@ any fix; most CI failures fall into one of these buckets.
 |---|---|---|
 | `error: ... Line exceeds 80 characters` | PHPCS line length | Wrap the line; use `drupal-coding-standards` skill to auto-fix |
 | `error: Missing function doc comment` | PHPCS missing docblock | Add `/** */` above the method |
-| `Unsafe usage of new static` | PHPStan: a subclass could change the constructor | Fix it: make the class or its constructor `final`, or build it with `new self()`. Add to `ignoreErrors` only when the module's `phpstan.neon` already ignores this pattern, and say so in the MR |
+| `Unsafe usage of new static` | PHPStan on Drupal's `create()` pattern. Core and gitlab_templates ignore it on purpose ("new static() is a best practice in Drupal") | The module's own `phpstan.neon` is missing core's ignore line. Add `- "#^Unsafe usage of new static#"` under `ignoreErrors`. Don't make the class `final` |
 | `Call to an undefined method` | PHPStan — wrong class/missing `use` | Check `use` statement; verify method exists on the interface |
 | `Parameter #N ... expects X, Y given` | PHPStan type mismatch | Fix the type declaration or cast at the call site |
 | `Class "Drupal\Tests\...\..." not found` | PHPUnit wrong namespace | Capital `T` in `Tests`; check the namespace matches the file path |

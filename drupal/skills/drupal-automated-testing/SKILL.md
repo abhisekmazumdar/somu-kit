@@ -34,7 +34,7 @@ Reach for **Functional or Kernel first** — not Unit, despite what general PHP 
 
 ## Required class attributes
 
-Kernel/Functional/FunctionalJavascript classes need `#[RunTestsInSeparateProcesses]` (`use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;`) — hard requirement since Drupal 11.3, strongly recommended on 10.x. Unit tests run in-process; skip it there.
+Kernel/Functional/FunctionalJavascript classes need `#[RunTestsInSeparateProcesses]` (`use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;`) — missing it is deprecated in Drupal 11.3 and throws an exception in 12.0, so always add it. Unit tests run in-process; skip it there.
 
 ## Test namespaces
 
