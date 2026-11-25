@@ -1,0 +1,17 @@
+{
+  "name": "abhisek-ai-toolkit",
+  "owner": {
+    "name": "Abhisek Mazumdar",
+    "email": "12195330+abhisekmazumdar@users.noreply.github.com"
+  },
+  "metadata": {
+    "description": "Abhisek Mazumdar's layered skills: core (everywhere), drupal and drupal-contrib (per project)."
+  },
+  "plugins": [
+    {
+      "name": "core",
+      "source": "./core",
+      "description": "Generic skills for every project: writing voice, skateboard planning, and short working principles."
+    }
+  ]
+}
