@@ -1,4 +1,6 @@
-# abhisek-ai-toolkit
+# somu-kit
+
+"Somu" is what my childhood friends call me.
 
 My Claude Code skills, as 1 plugin marketplace with layered plugins.
 
@@ -29,17 +31,19 @@ Skills are namespaced by plugin: `/core:skateboard-mvp`.
 In Claude Code:
 
 ```
-/plugin marketplace add abhisekmazumdar/abhisek-ai-toolkit
-/plugin install core@abhisek-ai-toolkit
+/plugin marketplace add abhisekmazumdar/somu-kit
+/plugin install core@somu-kit
 ```
 
-Then turn on auto-update: `/plugin` → Marketplaces → `abhisek-ai-toolkit` → Enable auto-update. It's off by default for third-party marketplaces.
+Then turn on auto-update: `/plugin` → Marketplaces → `somu-kit` → Enable auto-update. It's off by default for third-party marketplaces.
+
+The repo is private. Installing needs git access to GitHub (SSH key or `gh auth login`). Background auto-update also needs `GITHUB_TOKEN` set in your shell, for example `export GITHUB_TOKEN=$(gh auth token)`.
 
 Or from a shell:
 
 ```sh
-claude plugin marketplace add abhisekmazumdar/abhisek-ai-toolkit
-claude plugin install core@abhisek-ai-toolkit --scope user
+claude plugin marketplace add abhisekmazumdar/somu-kit
+claude plugin install core@somu-kit --scope user
 ```
 
 Don't also keep a `~/.claude/skills/write-like-abhisek` symlink, or the skill loads twice.
@@ -51,24 +55,24 @@ Commit this to the project's `.claude/settings.json`:
 ```json
 {
   "extraKnownMarketplaces": {
-    "abhisek-ai-toolkit": {
-      "source": { "source": "github", "repo": "abhisekmazumdar/abhisek-ai-toolkit" }
+    "somu-kit": {
+      "source": { "source": "github", "repo": "abhisekmazumdar/somu-kit" }
     }
   },
   "enabledPlugins": {
-    "drupal@abhisek-ai-toolkit": true
+    "drupal@somu-kit": true
   }
 }
 ```
 
-Or run `claude plugin install drupal@abhisek-ai-toolkit --scope project`.
+Or run `claude plugin install drupal@somu-kit --scope project`.
 
 ## Editing
 
 1. Edit `<plugin>/skills/<skill>/SKILL.md`.
 2. Bump `version` in `<plugin>/.claude-plugin/plugin.json`. Installs only update when it changes.
 3. `claude plugin validate .`
-4. Push. Other laptops pick it up on the next auto-update, or `/plugin marketplace update abhisek-ai-toolkit`.
+4. Push. Other laptops pick it up on the next auto-update, or `/plugin marketplace update somu-kit`.
 
 To test local changes before pushing: `claude --plugin-dir ./core`.
 
