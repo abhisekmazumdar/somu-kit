@@ -146,8 +146,10 @@ For violations PHPCBF could not fix, use the Edit tool:
 - **Line too long:** Shorten docblock text, or break code lines using Drupal multi-line style.
 - **Missing docblock:** Add a Drupal-style docblock with short description.
 - **Wrong indentation:** Drupal uses 2 spaces, not 4.
-- **PHPUnit PHP attributes** (`#[CoversClass]` etc.): Replace with `@covers`, `@group`
-  docblock annotations (Drupal 10 uses PHPUnit 9 which does not support PHP attributes).
+- **PHPUnit attributes vs docblocks:** Use attributes (`#[Group]`, `#[CoversClass]`).
+  Drupal 11.3+ needs PHPUnit 11 and 12.0 rejects `@group`/`@covers` docblocks. Use
+  docblock annotations only on a branch that still supports Drupal 10 (PHPUnit 9),
+  and match what the module's existing tests do. See `references/php-changes.md`.
 
 After manual fixes, re-run Step 3 to confirm clean.
 

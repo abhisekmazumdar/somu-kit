@@ -279,11 +279,11 @@ When the full diff was fetched, read it and produce:
 - **Verdict** — exactly one of:
   - `RTBC-ready` — pipeline passing, no open reviewer threads, diff matches
     the issue's resolution, tests present where the change warrants them
-  - `Close — <named gap>` — e.g. "close — missing a test for the empty-input
-    case" or "close — one open reviewer thread on line 42 unaddressed"
-  - `Needs work — <named gap>` — e.g. "needs work — pipeline failing on
-    PHPStan" or "needs work — diff doesn't address the reported bug"
-  - `Needs discussion — <what's contested>` — the approach itself is
+  - `Close: <named gap>`, e.g. "close: missing a test for the empty-input
+    case" or "close: one open reviewer thread on line 42 unaddressed"
+  - `Needs work: <named gap>`, e.g. "needs work: pipeline failing on
+    PHPStan" or "needs work: diff doesn't address the reported bug"
+  - `Needs discussion: <what's contested>`: the approach itself is
     disputed in the thread, not a code-quality question
 - This is a **judgment call to orient the human**, not the exhaustive A7
   checklist `drupal-issue-agent` runs after go — do not run PHPStan/PHPUnit
@@ -301,7 +301,7 @@ deferred to full review") rather than guessing.
 **If `issues/<nid>/README.md` does NOT exist:**
 
 ```bash
-mkdir -p issues/<nid>/screenshots issues/<nid>/comments
+mkdir -p issues/<nid>/screenshots issues/<nid>/drafts
 ```
 
 Write `issues/<nid>/README.md`:
@@ -478,7 +478,7 @@ what the human needs to know before trusting anything below. If it reported
 <2-4 sentence plain-language description of what the diff actually does.>
 
 <If the verdict names a gap, state it again here as the single concrete
-thing standing between this MR and RTBC — not a list of everything that
+thing standing between this MR and RTBC, not a list of everything that
 could theoretically be improved.>
 
 ---
@@ -519,7 +519,7 @@ test coverage." 1-3 items, not a general audit.>
 
 - **Continue existing MR** — an open MR exists and the discussion supports finishing it
 - **Implement fresh** — no MR exists, or the existing work is stale/abandoned per the comments
-- **Needs discussion — do not implement yet** — requirements are contested or ambiguous in the thread
+- **Needs discussion: do not implement yet**: requirements are contested or ambiguous in the thread
 - **Do not touch** — status is RTBC or Fixed; code changes now would disrupt the queue. Only review or testing feedback is appropriate unless the human explicitly overrides.
 
 Base this on status, MR state, the comment thread, and the Phase 2.5
@@ -538,7 +538,7 @@ possible action>
 1. Fix the named gap in the existing MR !<iid> — <gap from verdict>
 2. Implement the fix — no MR exists yet
 3. Re-roll against the latest branch — branch is behind
-4. Post a review comment endorsing RTBC — verdict is RTBC-ready
+4. Post a review comment endorsing RTBC: verdict is RTBC-ready
 5. Track this issue for later — no action needed now
 
 ---

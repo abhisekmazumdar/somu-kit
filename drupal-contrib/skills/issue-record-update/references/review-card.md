@@ -87,8 +87,8 @@ run the full checklist. Mark what it actually established and leave the rest
 
 ## Verdict, Next, Waiting on
 
-- **Verdict:** contributor flow uses `RTBC-ready` · `Close — <gap>` ·
-  `Needs work — <gap>` · `Needs discussion — <topic>` · `No MR yet`.
+- **Verdict:** contributor flow uses `RTBC-ready` · `Close: <gap>` ·
+  `Needs work: <gap>` · `Needs discussion: <topic>` · `No MR yet`.
   Merge-maintainer uses `MERGE` · `DO NOT MERGE — <reason>` · `MERGED` (once it
   has landed; then the card tracks the picks).
 - The verdict must agree with the marks: any ❌ rules out `RTBC-ready` and

@@ -119,7 +119,7 @@ override every step below that clones, adds a remote, pushes, or opens an MR:
 - **Checkout (A2/B4):** work in the module's existing checkout at
   `<webroot>/modules/contrib/<project>`. If it's missing or has uncommitted
   changes, `[PAUSE]` and ask — don't clone it. For Path A, add `<security_repo>`
-  as a remote named `security` (`git@git.drupalcode.org:<security_repo>.git`),
+  as a remote named `security` (`git@git.drupal.org:<security_repo>.git`),
   fetch the MR branch, and check it out as `security-<iid>`. For Path B, branch
   `security-<iid>` from the default branch.
 - **Never push** (A10 step 7, B5): run the preflight, commit locally, and stop.
@@ -583,7 +583,7 @@ plain-language pass and confidence-qualified recommendation. Structure:
 - Issues remaining for the author
 - Recommendation: Needs Work / RTBC / Looks good to me — matching the
   verdict from A9 (updated if the fix loop changed it), with a confidence
-  qualifier (e.g. "RTBC — high confidence" / "Needs work — moderate
+  qualifier (e.g. "RTBC, high confidence" / "Needs work, moderate
   confidence, pending a second pass")
 - AI disclosure, last — `drupalorg-comment-format`'s format (collapsible on GitLab), no tool or model names
 

@@ -53,7 +53,7 @@ Before writing anything, internalize both sets of rules below: what the voice so
 
 **Candid about changing position.** When a reviewer was right and you were wrong, say it plainly and move on. "You are right. I removed it." No dramatizing, no excessive hedging, no "upon further reflection." Just: agree → state what changed.
 
-**Honest about the process, including AI.** When Claude Code helped reason through something, especially something that took debate, name it naturally. "After a long back-and-forth with Claude on it, we both came around to agreeing with you." This is not an apology and not a disclaimer. It's part of how the work got done. Keep it one clause, not a paragraph.
+**Honest about AI use, and the position stays his.** If AI helped, say "AI", never a tool, model or vendor name. AI is never a co-author or co-decider: no "we both", no "Claude and I". The reasoning is his. Where a disclosure line is required (an issue queue's AI policy), use that line instead of mentioning it in the prose.
 
 **A light playful touch is fine in informal review threads.** Not jokes. Just the honest, slightly self-aware framing that comes from actually having wrestled with a problem. "We debated this" or "it took some convincing" reads as human, not unprofessional.
 
@@ -67,7 +67,7 @@ Never use these in the inflated way AI deploys them:
 
 - **Transition padding:** "Additionally," "Furthermore," "Moreover," "In conclusion," "It is worth noting that"
 - **Significance inflation:** "pivotal," "crucial," "underscores," "testament," "highlights," "reflects broader," "stands as," "serves as a reminder"
-- **AI tells (2023–2025):** "delve," "intricate," "tapestry," "garner," "align with," "bolstered," "fostering," "showcasing," "nuanced"
+- **AI tells:** "delve," "intricate," "tapestry," "garner," "align with," "bolstered," "fostering," "showcasing," "nuanced"
 
 ### Elaborate Copulatives
 
@@ -136,7 +136,7 @@ Leave fixed phrases where the word isn't really a count: "one of the", "no one",
 > Thank you for your feedback. After careful consideration, I have determined that your concerns regarding SSRF and remote URL fetching are valid. I have therefore removed the remote URL functionality and replaced it with base64 data URI support as suggested.
 
 **In Abhisek's voice (GitLab MR comment):**
-> I had a look at both suggestions and after a long back-and-forth with Claude on it, we both came around to agreeing with you.
+> I had a look at both suggestions and after going back and forth on it, I came around to agreeing with you.
 >
 > **On the URL input:** you are right. It does not belong here. I have removed `normalizeRemoteUrl()` entirely, along with the Guzzle dependency.
 >
@@ -144,7 +144,7 @@ Leave fixed phrases where the word isn't really a count: "one of the", "no one",
 >
 > The new commit in !73 covers both changes. Would appreciate a review when you get a chance.
 
-What makes it work: admits disagreement plainly ("after a long back-and-forth"), validates the reviewer without gushing ("you are right"), names exactly what changed, closes with a clear ask.
+What makes it work: admits the change of mind plainly ("I came around"), validates the reviewer without gushing ("you are right"), names exactly what changed, closes with a clear ask.
 
 ---
 

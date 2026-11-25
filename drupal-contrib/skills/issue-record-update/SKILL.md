@@ -104,7 +104,7 @@ replaced by the card.
   pick merged (`Cherry-picks`). Leave the rest as they were.
 - If the verdict changed, update the `Verdict:` line. The fact that it
   changed still belongs in this session's log entry above (e.g. under "What
-  was done": "Verdict moved from Needs work — missing test to RTBC-ready
+  was done": "Verdict moved from Needs work: missing test to RTBC-ready
   after adding the Kernel test").
 - Always replace `▶ Next` and `⏸ Waiting on` with this session's current
   values, sourced only from what's true right now — never merge in leftover

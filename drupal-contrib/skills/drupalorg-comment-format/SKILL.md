@@ -182,7 +182,8 @@ restating its rules. Constraints specific to issue-queue content:
 - No greeting, no opener — start with the fact, status, or problem.
 - Status updates are one line: "The MR functions correctly. I'm marking this as RTBC."
 - When responding to reviewer feedback: be candid about position changes. If the reviewer was right, say so plainly. "You are right. I removed it." beats hedged corporate acknowledgement every time.
-- A light, honest self-awareness is fine in informal review threads. "After a long back-and-forth with AI on it, we both came around to agreeing with you" reads as human and direct — don't sanitize it into bland acceptance.
+- A light, honest self-awareness is fine in informal review threads. "After going back and forth on it, I came around to agreeing with you" reads as human and direct. Don't sanitize it into bland acceptance. The position is always the human's: AI is never a co-decider ("we both"), and AI use goes in the disclosure line, not the prose.
+- No em dashes (—) anywhere in a draft. Use a period, comma or colon. Readers spot them as AI text.
 
 ---
 
@@ -206,8 +207,8 @@ When drafting a **comment reply**:
 10. **The recommendation states its confidence, not just its verdict.**
     Needs Work / RTBC / Looks good to me always comes with a one-clause
     reason and a confidence level tied to how much evidence backs it — e.g.
-    "RTBC — high confidence (pipeline green, no open threads, manual steps
-    verified)" or "Needs work — moderate confidence, the fix addresses the
+    "RTBC, high confidence: pipeline green, no open threads, manual steps
+    verified" or "Needs work, moderate confidence: the fix addresses the
     reported bug but the edge case on empty input wasn't re-tested."
 
 ---
@@ -238,10 +239,10 @@ do not also print a preview, rendered version, or HTML snippet in chat. The
 file is the deliverable.
 
 ```
-issues/<nid>/comments/YYYY-MM-DD-HHmmss-<label>.md
+issues/<nid>/drafts/YYYY-MM-DD-HHmmss-<label>.md
 ```
 
-- Create the directory if it does not exist: `mkdir -p issues/<nid>/comments`
+- Create the directory if it does not exist: `mkdir -p issues/<nid>/drafts`
 - `<label>` — 2–4 word slug derived from the comment purpose, e.g. `review-feedback`, `reroll-note`, `rtbc`
 - File always uses `.md` extension
 - GitLab (migrated) queues: file content is GitLab Flavored Markdown, pasted as-is.
@@ -265,5 +266,5 @@ review/paste from it directly:
 
 Then tell the user only:
 ```
-Comment saved to issues/<nid>/comments/<filename>.md
+Comment saved to issues/<nid>/drafts/<filename>.md
 ```

@@ -9,10 +9,10 @@ any fix; most CI failures fall into one of these buckets.
 |---|---|---|
 | `error: ... Line exceeds 80 characters` | PHPCS line length | Wrap the line; use `drupal-coding-standards` skill to auto-fix |
 | `error: Missing function doc comment` | PHPCS missing docblock | Add `/** */` above the method |
-| `Unsafe usage of new static` | PHPStan — Drupal pattern | Add to `phpstan.neon` `ignoreErrors` |
+| `Unsafe usage of new static` | PHPStan: a subclass could change the constructor | Fix it: make the class or its constructor `final`, or build it with `new self()`. Add to `ignoreErrors` only when the module's `phpstan.neon` already ignores this pattern, and say so in the MR |
 | `Call to an undefined method` | PHPStan — wrong class/missing `use` | Check `use` statement; verify method exists on the interface |
 | `Parameter #N ... expects X, Y given` | PHPStan type mismatch | Fix the type declaration or cast at the call site |
-| `Class "Drupal\Tests\...\..." not found` | PHPUnit wrong namespace | Capital `T` in `Tests`; check `@group` and file path match |
+| `Class "Drupal\Tests\...\..." not found` | PHPUnit wrong namespace | Capital `T` in `Tests`; check the namespace matches the file path |
 | `Table "..." doesn't exist` | Kernel test missing schema | Install the module in `setUp` via `installEntitySchema` or `installSchema` |
 | `Headers already sent` | Functional test output leak | Remove any `echo`/`print`/`dpm()` left in code |
 | `Your requirements could not be resolved` | Composer version conflict | Check `composer.json` constraints against Drupal version |
