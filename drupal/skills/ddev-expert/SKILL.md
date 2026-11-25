@@ -57,25 +57,24 @@ ddev share          # Create public URL (ngrok)
 name: my-project
 type: drupal           # Auto-detects Drupal version, or use drupal11/drupal10
 docroot: web
-php_version: "8.3"     # Use 8.3 for Drupal 11, 8.2 for Drupal 10
+php_version: "8.4"     # Drupal 11 needs 8.3+; Drupal 10 runs 8.1-8.3
 webserver_type: nginx-fpm
 database:
   type: mariadb
-  version: "10.11"
+  version: "11.8"
 
 # Additional hostnames
 additional_hostnames:
   - api.my-project.ddev.site
 
 # Extra PHP packages
-webimage_extra_packages: [php8.3-imagick]
+webimage_extra_packages: [php8.4-imagick]
 ```
 
 ### Common Customizations
 
 **Custom services** (.ddev/docker-compose.*.yaml):
 ```yaml
-version: '3.6'
 services:
   redis:
     image: redis:7
@@ -98,7 +97,7 @@ post_max_size = 64M
 ### New Drupal 11 Project
 ```bash
 mkdir my-drupal && cd my-drupal
-ddev config --project-type=drupal --docroot=web --php-version=8.3
+ddev config --project-type=drupal --docroot=web --php-version=8.4
 ddev start
 ddev composer create-project drupal/recommended-project:^11
 ddev composer require drush/drush
@@ -127,8 +126,8 @@ ddev drush cr
 
 **`ddev composer create-project` fails with "not allowed to be present":**
 This can happen when assistant configuration or Git metadata already exists
-in the destination (`.claude/`, `.agents/`, `.codex/`, `.drupal-contrib/`, `.git/`).
-Create the Drupal project in an empty directory and run the toolkit installer
+in the destination (`.claude/`, `.agents/`, `.codex/`, `.git/` or other tool
+folders). Create the Drupal project in an empty directory and add those
 afterward. Do not move existing configuration into fixed shared `/tmp` paths.
 
 **Port conflicts:**

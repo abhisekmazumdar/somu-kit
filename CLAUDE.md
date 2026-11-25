@@ -100,7 +100,7 @@ None live in this repo — `bin/setup.js` pulls all of them at install time via 
 | `drupalorg-cli` | `mglaman/drupalorg-cli` | `drupal-issue-start` and others, Drupal.org issue/MR data |
 | `how` | `cursor/plugins` | user-run; suggested in `drupal-issue-agent`'s final report when A3/B2 left the code unclear |
 | `blast-radius` | `cursor/plugins` | user-run; suggested in `drupal-issue-agent`'s final report on the saved `drupal-impact` report when it has a HIGH/MEDIUM piece |
-| `unslop` | `cursor/plugins` | user-run; suggested under every draft from `drupalorg-writing` |
+| `unslop` | `cursor/plugins` | user-run; suggested under a draft from `drupalorg-writing` only when `write-like-abhisek` isn't available |
 | `technical-writing` | `cursor/plugins` | user-run; suggested alongside `unslop`, for structure |
 | `interrogate` | `cursor/plugins` | user-run; offered in `drupal-issue-agent`'s final report for a second opinion on the verdict |
 | `why` | `cursor/plugins` | user-run; suggested in `drupal-issue-catchup`'s briefing when a design decision is unexplained |
@@ -114,7 +114,7 @@ npx -y skills@latest add <owner/repo> --skill <name> --agent claude-code --copy 
 
 Never copy their contents into `skills/` — updated via `npx skills update`. Each pull is non-fatal (offline prints the manual command and continues). Adding another: append to the `externalSkills` array in `bin/setup.js`, don't write a new bespoke block. `cursor/plugins` skills nest under `pstack/skills/<name>`; all seven (`how`, `why`, `blast-radius`, `interrogate`, `tdd`, `unslop`, `technical-writing`) ship `disable-model-invocation: true` — reserved for the user. The flow never runs, reads or imitates them; it ends the relevant report with a **You run** line (the `/name` or `$name` command and why now), only when its condition holds. That's the point of pulling them: the human gets reminded at the moment each one pays off. The loop groups by `repo` and pulls each repo's skills in one call — repeated `--skill` flags work, a comma-separated value silently falls back to an interactive picker and installs nothing.
 
-`writing-for-agents` (`mattpocock/skills`) and the `principle-*` micro-skills (`cursor/plugins`) are useful only for maintaining *this* repo, not an installed Drupal workspace — deliberately not in `externalSkills`. Pull them into this repo's own `.claude/skills/` for local dev only (`.gitignore` excludes `.claude/` for exactly this reason).
+Working principles (`reuse-first`, `fix-root-causes`, `prove-it-works` and others) ship in this repo's own `core` plugin, installed at user level. They aren't in `externalSkills`: the npx installer only installs the Drupal layers.
 
 ### Git guardrail hook
 
