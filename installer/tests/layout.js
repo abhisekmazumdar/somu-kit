@@ -1,9 +1,9 @@
 'use strict';
 
 // Maps the repo-relative paths the tests use ('skills/<name>/...',
-// 'agents/...', 'docs/...', 'bin/...', 'templates/...') onto the somu-kit
+// 'agents/...', 'bin/...', 'templates/...') onto the somu-kit
 // layout: skills split across the drupal and drupal-contrib plugins, agents
-// in drupal-contrib, docs at the repo root, everything else in installer/.
+// in drupal-contrib, everything else in installer/.
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -26,7 +26,6 @@ function src(...parts) {
     return path.join(root, rel.slice('skills/'.length));
   }
   if (top === 'agents') return path.join(repo, 'drupal-contrib', rel);
-  if (top === 'docs') return path.join(repo, rel);
   return path.join(installer, rel);
 }
 

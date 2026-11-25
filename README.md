@@ -55,7 +55,7 @@ Run from the Drupal workspace:
 npx github:abhisekmazumdar/somu-kit --target both
 ```
 
-It installs both layers' skills, the agents, a git guard hook and the drupalorg-cli MCP config, for Claude Code and Codex. Details: [drupal-contrib/README.md](drupal-contrib/README.md) and the [docs site](https://abhisekmazumdar.github.io/somu-kit/).
+It installs both layers' skills, the agents, a git guard hook and the drupalorg-cli MCP config, for Claude Code and Codex. Details: [drupal-contrib/README.md](drupal-contrib/README.md).
 
 These 2 layers aren't plugins yet. The installer sets up things a plugin can't (permissions, `CLAUDE.md` block, Codex config), so it stays the way in for now.
 

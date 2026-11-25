@@ -35,7 +35,6 @@ installer/
       block-dangerous-git.sh   # copied verbatim, chmod +x'd
       check-command.py         # Codex's equivalent guardrail (no {{VAR}} either)
   tests/                 # node --test, run in CI; tests/layout.js maps paths
-docs/index.html          # hand-written reference site, see below
 ```
 
 The installer flattens `drupal/skills/` and `drupal-contrib/skills/` into 1 skills root in the target workspace. It never installs `core/`.
@@ -50,7 +49,7 @@ No build step, no `npm run` scripts. CI (`.github/workflows/ci.yml`) runs these;
 
 ```bash
 node --check installer/bin/*.js
-node --test installer/tests/*.test.js   # includes tests/docs-sync.test.js — see below
+node --test installer/tests/*.test.js
 grep -rn "{{" drupal/skills drupal-contrib/skills drupal-contrib/agents   # must be empty — {{VAR}} only belongs in templates/
 node -e "JSON.parse(require('fs').readFileSync('installer/templates/settings.json.template','utf8').replace(/\{\{[A-Z_]+\}\}/g,'placeholder'))"
 ```
@@ -60,10 +59,6 @@ See "Testing setup changes" below to exercise `bin/setup.js` end-to-end.
 ---
 
 ## Key conventions — read before editing anything
-
-### `docs/index.html` — keep it in sync
-
-Hand-written, not generated. Holds the reference detail `README.md` deliberately skips (README stays a quickstart). **Changed a skill, agent, external skill, or a convention below? Check `docs/index.html`.** `tests/docs-sync.test.js` (CI) catches the mechanical half automatically — every skill/agent/externalSkill needs a matching table row, both directions, so a rename or removal fails CI instead of drifting. It doesn't check prose (role descriptions, the issue-record format, conventions) — that's still a manual check.
 
 ### `{{VAR}}` lives only in `templates/`
 

@@ -1,10 +1,8 @@
-# drupal-claude-skills
+# Drupal contribution toolkit (somu-kit)
 
 [![CI](https://github.com/abhisekmazumdar/somu-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/abhisekmazumdar/somu-kit/actions/workflows/ci.yml)
 
 A shared Drupal contribution toolkit for Claude Code and Codex. Install it into your Drupal workspace to investigate issues, review merge requests, push fixes to an MR for you to review, run independent tests, and keep issue records across sessions.
-
-[Full documentation](https://abhisekmazumdar.github.io/somu-kit/) covers the skills, agents, multi-site workflow, and [client compatibility](https://abhisekmazumdar.github.io/somu-kit/#clients).
 
 The workflows support [Drupal.org's AI contribution policy](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal). You remain responsible for reviewing submissions, disclosing AI use, and following up with maintainers.
 
@@ -92,6 +90,37 @@ To map what a diff touches before reading it (services, hooks, plugins, routes, 
 
 Both clients use `issues/<nid>/README.md` and archived `history.md`. You can resume an issue in the other client. Avoid concurrent writes to the same record or checkout.
 
+## Claude Code and Codex
+
+| | Claude Code | Codex |
+|---|---|---|
+| Entry file | `CLAUDE.md` | `AGENTS.md` |
+| Skills | `.claude/skills/`, `/skill` | `.agents/skills/`, `$skill` |
+| Agents | `.claude/agents/*.md` | `.codex/agents/*.toml` |
+| MCP | `.mcp.json` | `.codex/config.toml` |
+| Command controls | `settings.json` permissions + hook | `config.toml`, `hooks.json`, rules |
+
+After install:
+- Claude Code: approve the project MCP server, check it with `/mcp`.
+- Codex: trust the workspace and review the hook in `/hooks`. An untrusted hook is skipped, not enforced.
+- The installer never touches global trust or config.
+
+Hooks and permissions narrow what runs, but they're not a full security boundary. You still read every draft and review every MR.
+
+Before a release, run 1 real issue in each client: load context, recon, review, relay an approval, delegate tests, save screenshots, then resume the record in the other client. Tested on macOS/Linux/WSL with DDEV. Native Windows isn't.
+
+## AI policy
+
+Built to follow [Drupal.org's AI policy](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal), not to work around it:
+
+- Nothing is posted in your name. Code goes to the issue fork MR for you to review. Comments, status changes and approvals are drafts in `issues/<nid>/drafts/`.
+- Every draft ends with the AI disclosure from `drupalorg-comment-format`. It never names a tool or model. `settings.json` blanks Claude Code's attribution, so there's no `Co-Authored-By` trailer. Codex's trailer is an account setting: turn it off there.
+- Nothing is pushed untested: PHPCS, PHPStan and relevant tests must pass locally first.
+- Earlier discussion is read first, so a rejected idea isn't proposed again.
+- Posting means you follow up when a maintainer replies.
+- Code must stay GPL-2.0-or-later compatible. The review flags code that looks copied.
+- Security issues never go to the public queue.
+
 ## Update and develop
 
 Re-run the installer to update package-owned files and install missing upstream skills. After adding another target, future runs without `--target` update all recorded targets. No target is uninstalled implicitly.
@@ -101,11 +130,11 @@ Use `npx skills update` for upstream skills; resolve any proposed `skills-lock.j
 The package uses Node built-ins and has no build step:
 
 ```bash
-node --check bin/setup.js
-node --test tests/*.test.js
+node --check installer/bin/setup.js
+node --test installer/tests/*.test.js
 ```
 
-Tests require Python 3.11+ for TOML validation. CI also validates skill/agent frontmatter and template variables. Source lives in `skills/`, `agents/`, `templates/`, and `bin/`; the hand-written reference is `docs/index.html`.
+Tests require Python 3.11+ for TOML validation. CI also validates skill/agent frontmatter and template variables. Source lives in `drupal/skills/`, `drupal-contrib/skills/`, `drupal-contrib/agents/` and `installer/`. Repo conventions are in the root `CLAUDE.md`.
 
 ## License
 
