@@ -62,8 +62,8 @@ _Used AI to help with research and writing (reviewing the MR diff, analysing the
 
 ## Voice and Tone
 
-All Drupal.org content must follow the `write-like-abhisek` skill's technical
-register — that skill is the canonical source; apply it here rather than
+When the `write-like-abhisek` skill is available, all drupal.org text follows
+its technical register: it's the canonical source, so apply it rather than
 restating its rules. Constraints specific to issue-queue content:
 
 - No greeting, no opener — start with the fact, status, or problem.
@@ -96,14 +96,19 @@ For any comment, MR reply or review:
     verified" or "Needs work, moderate confidence: the fix addresses the
     reported bug but the edge case on empty input wasn't re-tested."
 
-## Before saving: plain-language pass
+## Before saving: cut and scan
 
-Before output, check the draft yourself against rule 8 and the Voice and
-Tone rules: short sentences, concrete claims, no filler.
+Check the draft against rule 8 and the Voice and Tone rules: short
+sentences, concrete claims, no filler.
 
-Then, below the draft, add one line reminding the human of the two writing
-skills they can run on it before posting — `technical-writing` (structure,
-a plain register any queue reader can follow) and `unslop` (residual AI
+**If `write-like-abhisek` is available:** follow its "Applying This Skill"
+steps on the draft: cut it by about a third, then run its `scan.py` and fix
+every error. That skill is the only style authority; don't also suggest the
+external writing skills below.
+
+**Otherwise,** add 1 line below the draft reminding the human of the 2
+writing skills they can run before posting: `technical-writing` (structure,
+a plain register any queue reader can follow) and `unslop` (leftover AI
 writing patterns):
 
 > **You run:** `/technical-writing` then `/unslop` on this draft before posting (Codex: `$technical-writing`, `$unslop`).

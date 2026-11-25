@@ -26,7 +26,7 @@ jobs:
           bash -n installer/templates/hooks/block-dangerous-git.sh
 
       - name: Installer, configuration, and command guard tests
-        run: node --test installer/tests/*.test.js
+        run: node --test installer/tests/*.test.js tests/*.test.js
 
       - name: Validate skill and agent frontmatter
         run: |
