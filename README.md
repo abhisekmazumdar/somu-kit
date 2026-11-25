@@ -68,6 +68,16 @@ These 2 layers aren't plugins yet. The installer sets up things a plugin can't (
 
 To test local changes before pushing: `claude --plugin-dir ./core`.
 
+## Evals: does the right skill fire?
+
+`core/evals/` has 10 cases: 7 check that a realistic prompt loads the right skill, 3 check that unrelated prompts load none. Run them after changing a skill's description:
+
+```sh
+claude plugin eval ./core --trust-plugin --ablation none --no-publish -j 4 --max-cost-usd 5
+```
+
+Last run (2026-11-26): 10 of 10 cases passed, 2 runs each, $1.57. Results stay local in `core/evals/results/`.
+
 ## Copies in other repos (cloud runs)
 
 Cloud runs only see skills committed to their own repo. These keep a copy:
