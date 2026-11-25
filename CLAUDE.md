@@ -130,7 +130,7 @@ Every drafted issue, MR description, and comment ends with the disclosure define
 
 ### Guiding philosophy — move issues toward RTBC, don't just find things
 
-Every review — the light one in `drupal-issue-start` Phase 2.5, the full one in `drupal-issue-agent`'s A9 — ends with a **judgment call**: RTBC-ready, close with a named gap, needs work, or needs discussion. The goal is a mergeable, community-acceptable contribution, not an exhaustive findings list. Cosmetic nitpicks that don't block correctness/security/standards get mentioned once and set aside; don't pad a review with them to look thorough. Change one review layer's framing, check the other matches.
+Every review — the light one in `drupal-issue-start` Phase 2.5, the full one in `drupal-issue-agent`'s A9 — ends with a **judgment call**: RTBC-ready, almost (a named gap), needs work, or needs discussion. The full review in A7 judges 2 axes separately: Fit (should this land, with proof) and Craft (is the code ready). The goal is a mergeable, community-acceptable contribution, not an exhaustive findings list. Cosmetic nitpicks that don't block correctness/security/standards get mentioned once and set aside; don't pad a review with them to look thorough. Change one review layer's framing, check the other matches.
 
 ### `references/` subfolder — reference material, not procedure
 

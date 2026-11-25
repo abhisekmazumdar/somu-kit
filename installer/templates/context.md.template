@@ -105,8 +105,8 @@ site's root before the `ddev exec` call so DDEV picks the right container.
 **Unit tests** — no database needed:
 ```bash
 ddev exec phpunit \
-  --bootstrap /var/www/html/web/core/tests/bootstrap.php \
-  /var/www/html/web/modules/contrib/<module>/tests/src/Unit
+  --bootstrap /var/www/html/{{DRUPAL_WEBROOT}}/core/tests/bootstrap.php \
+  /var/www/html/{{DRUPAL_WEBROOT}}/modules/contrib/<module>/tests/src/Unit
 ```
 
 **Kernel and Functional tests** — require database and base URL:
@@ -114,8 +114,8 @@ ddev exec phpunit \
 ddev exec bash -c "
   SIMPLETEST_BASE_URL={{SITE_URL}} \
   SIMPLETEST_DB=mysql://db:db@db/db \
-  phpunit --bootstrap /var/www/html/web/core/tests/bootstrap.php \
-  /var/www/html/web/modules/contrib/<module>/tests/src/Kernel
+  phpunit --bootstrap /var/www/html/{{DRUPAL_WEBROOT}}/core/tests/bootstrap.php \
+  /var/www/html/{{DRUPAL_WEBROOT}}/modules/contrib/<module>/tests/src/Kernel
 "
 ```
 
@@ -124,9 +124,9 @@ ddev exec bash -c "
 ddev exec bash -c "
   SIMPLETEST_BASE_URL={{SITE_URL}} \
   SIMPLETEST_DB=mysql://db:db@db/db \
-  phpunit --bootstrap /var/www/html/web/core/tests/bootstrap.php \
+  phpunit --bootstrap /var/www/html/{{DRUPAL_WEBROOT}}/core/tests/bootstrap.php \
   --filter testMethodName \
-  /var/www/html/web/modules/contrib/<module>/tests/src
+  /var/www/html/{{DRUPAL_WEBROOT}}/modules/contrib/<module>/tests/src
 "
 ```
 

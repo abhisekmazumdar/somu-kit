@@ -28,7 +28,7 @@ test('verdict and confidence examples use no em dash, so drafts copy none', () =
     'skills/issue-record-update/references/review-card.md',
     'agents/drupal-issue-agent.md',
   ]) {
-    assert.doesNotMatch(flat(rel), /\b(RTBC|Close|Needs work|Needs discussion)\b[^"`\n]{0,3}—/i, rel);
+    assert.doesNotMatch(flat(rel), /\b(RTBC|Almost|Needs work|Needs discussion)\b[^"`\n]{0,3}—/i, rel);
   }
   assert.match(read('skills/drupalorg-writing/SKILL.md'), /No em dashes \(—\) anywhere in a draft/);
 });

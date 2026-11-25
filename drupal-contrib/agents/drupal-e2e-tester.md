@@ -54,7 +54,7 @@ covered is not an acceptable report.
 **Site context:** every `ddev`/`drush` command below runs against `<site>` —
 `cd` into that site's root (`<drupal-path>`) first, or confirm the shell is
 already there, so DDEV targets the right project's container. Absolute
-in-container paths (`/var/www/html/web/...`) stay correct regardless of
+in-container paths (`/var/www/html/<webroot>/...`) stay correct regardless of
 which site is active — only the host-side cwd needs to match.
 
 If invoked directly without these, gather what you can from `issues/<nid>/README.md`
@@ -91,14 +91,14 @@ skill for env vars and the Functional dual-container trap.
 
 ```bash
 # Unit (no DB)
-ddev exec phpunit --bootstrap /var/www/html/web/core/tests/bootstrap.php \
-  /var/www/html/web/modules/contrib/<project>/tests/src/Unit --testdox 2>&1 | tail -40
+ddev exec phpunit --bootstrap /var/www/html/<webroot>/core/tests/bootstrap.php \
+  /var/www/html/<webroot>/modules/contrib/<project>/tests/src/Unit --testdox 2>&1 | tail -40
 
 # Kernel / Functional (DB + base URL)
 ddev exec bash -c "SIMPLETEST_BASE_URL=<site-url> \
   SIMPLETEST_DB=mysql://db:db@db/db \
-  phpunit -c /var/www/html/web/core/phpunit.xml.dist \
-  /var/www/html/web/modules/contrib/<project>/tests/src --testdox 2>&1" | tail -60
+  phpunit -c /var/www/html/<webroot>/core/phpunit.xml.dist \
+  /var/www/html/<webroot>/modules/contrib/<project>/tests/src --testdox 2>&1" | tail -60
 ```
 
 When **affected tests** were passed, run those files first, each by path

@@ -75,7 +75,7 @@ Invoked **after** `/drupal-issue-start` has loaded the issue record at `issues/<
 
 **Cross-issue memory:** always check `## Related Issues`. If a related record exists at `issues/<related-nid>/README.md`, read it — prior decisions, constraints, or completed work may bear on this issue. Discover a new relationship during analysis? Append it there.
 
-**Site context:** `drupal-issue-start` resolves the site and passes `<site>`/`<webroot>`/`<drupal-path>` — use those, never re-resolve. Every `ddev`/`drush` command below runs against that site: `cd` into `<drupal-path>` (or the workspace root if empty) first — DDEV auto-detects its project from cwd, not a flag. Absolute in-container paths (`/var/www/html/web/...`) stay correct regardless of active site; only the host-side cwd needs to match.
+**Site context:** `drupal-issue-start` resolves the site and passes `<site>`/`<webroot>`/`<drupal-path>` — use those, never re-resolve. Every `ddev`/`drush` command below runs against that site: `cd` into `<drupal-path>` (or the workspace root if empty) first — DDEV auto-detects its project from cwd, not a flag. Absolute in-container paths (`/var/www/html/<webroot>/...`) stay correct regardless of active site; only the host-side cwd needs to match.
 
 ## Session Logging — Mandatory
 
@@ -298,7 +298,7 @@ No such tools? Skip this step.
 
 ### A4. Static analysis
 
-**Skip on first review pass.** GitLab CI runs PHPCS and PHPStan on every push — the pipeline status from A1 is the source of truth. Only run locally if the pipeline is failing or the user explicitly asks.
+**On the first pass, a green pipeline on the MR's head commit counts as evidence** for PHPCS and PHPStan (GitLab CI runs both on every push). Run locally when the pipeline is failing, missing, or older than the head commit, or when the user asks. No pipeline and no local run means the Craft rows stay ❔, so the verdict can't be RTBC.
 
 When running locally, use the `drupal-coding-standards` skill for PHPCS. For
 PHPStan, always use `ddev exec` (never `php vendor/bin/phpstan` — host PHP
@@ -307,14 +307,14 @@ PHPStan **from the module root** because `phpstan.neon` uses relative paths.
 If ddev is not running or containers are unhealthy, consult the `ddev-expert` skill before proceeding:
 
 ```bash
-ddev exec bash -c "cd /var/www/html/web/modules/contrib/<project> && phpstan analyse --configuration=phpstan.neon --memory-limit=256M 2>&1"
+ddev exec bash -c "cd /var/www/html/<webroot>/modules/contrib/<project> && phpstan analyse --configuration=phpstan.neon --memory-limit=256M 2>&1"
 ```
 
 If the module has no `phpstan.neon`, skip PHPStan locally — CI will catch it.
 
 ### A5. PHPUnit tests
 
-**Skip on first review pass.** GitLab CI runs the full test suite on every push — the pipeline status from A1 is the source of truth. Only run locally if the pipeline is failing or the user explicitly asks. When running locally, use the `drupal-automated-testing` skill.
+**On the first pass, a green pipeline on the head commit counts as evidence** that the suite passes. It doesn't prove the fix: before an RTBC verdict, run the test that covers the change locally with the fix reverted and see it fail, then with the fix and see it pass (the Fit proof in A7). Also run locally when the pipeline is failing, missing or stale, or the user asks. Use the `drupal-automated-testing` skill.
 
 ### A6. Timeline cross-reference
 
@@ -328,12 +328,36 @@ timestamps (from `fetch.py`). Sort chronologically and look for:
 | Issue comment came after a fix commit for the same topic | `VERIFY` | Confirm the commit actually addresses it |
 | Issue comment → inline thread → fix commit | `VERIFIED` | Healthy — no action needed |
 
-### A7. Build review checklist
+### A7. Review on 2 axes: Fit and Craft
 
-Work through every item. Mark each `PASS`, `FAIL`, or `SKIP`:
+Review in 2 separate passes, so a polished MR that solves the wrong problem
+can't pass on code quality.
+
+**Fit: should this land?** Feeds the card's `Scope`, `Fix`, `Tests` and
+`Manually tested` rows.
+- Solves the issue as stated. Quote the issue's expected behaviour and say
+  how the diff delivers it.
+- The bug reproduces without the change and is gone with it: command output,
+  a test run, or A8 steps run by `drupal-e2e-tester`.
+- A test covers it: it fails with the fix reverted and passes with the fix
+  (A5). Docs-only or config-only changes say "no test needed" and why.
+- No scope creep. BC kept, or the update path and change record exist.
+- Matches the direction maintainers set in the thread (A6). A contested
+  approach is a Fit finding, not a Craft one.
+
+**Craft: is the code ready?** Feeds the card's `Pipeline`, `Standards` and
+`Threads` rows. Work through the checklist below.
+
+**Mark every item with evidence.** ✅ needs something you ran or read: command
+output, a pipeline link for the head commit, or a quoted `file:line`. ❌ is a
+finding. No evidence means ❔, never ✅.
+
+**Prove findings before reporting them.** A blocking finding needs proof you
+produced: a failing test or command, PHPStan output, or the exact code path
+with `file:line`. If you can't prove it, report it as a question for the
+author, not a blocker.
 
 **Correctness**
-- Logic matches the stated goal in the issue description
 - Edge cases handled (null, empty array, missing config)
 - No runtime errors (uninitialised variables, wrong method calls)
 - Entity/field operations follow Drupal patterns
@@ -384,6 +408,15 @@ Work through every item. Mark each `PASS`, `FAIL`, or `SKIP`:
 **Open reviewer threads**
 - All open inline threads from previous reviewers addressed
 - No regression on resolved points
+
+**Verdict rules**
+- Any blocking Fit finding: `Needs work: <gap>`, or `Needs discussion:
+  <topic>` when the approach itself is contested.
+- Fit clean, a blocking Craft finding: `Needs work: <gap>`.
+- Both clean, but a row is ❔ or a nitpick is left: `Almost: <gap>`, naming
+  the missing proof.
+- Both clean, every Fit row ✅ with evidence: `RTBC-ready`. A green pipeline
+  alone never makes Fit ✅.
 
 ### A8. Manual testing steps
 
@@ -458,7 +491,7 @@ Codex) and why now. Nothing applies? Omit the line. At A9:
 - `/blast-radius issues/<nid>/impact-<short-sha>.md` — when the impact report
   has a HIGH or MEDIUM piece, or the `--scan` was skipped: it digs into the
   breakage grep can't see, starting from that map.
-- `/interrogate` — when the verdict is RTBC or close.
+- `/interrogate` — when the verdict is RTBC or almost.
 - `/how <area>` — when A3 left part of the code unclear.
 - `/tdd` on item N — when an item is a bug fix with a cheap Unit/Kernel test target.
 
@@ -486,12 +519,12 @@ everything below is the evidence for it, not a substitute for it.>
 ### Summary
 - PHPCS: X errors, Y warnings
 - PHPUnit: X passed, Y failed / not run
-- Review: X FAIL, Y PASS, Z SKIP
+- Fit: X ✅, Y ❌, Z ❔ · Craft: X ✅, Y ❌, Z ❔
 
 > **⚠ Branch was N commits behind `origin/<DEFAULT_BRANCH>` — rerolled before fixing.**  ← include only when COMMITS_BEHIND > 0
 
 ### Review Failures
-[numbered list — each item: N. file:line — description — suggested fix — **blocking** or **nitpick**]
+[numbered list, each item: N. [Fit|Craft] [**blocking**|nitpick] file:line: what's wrong. Fix: … Proof: <command output, failing test, or quoted code>]
 
 ### Fix list
 [the blocking item numbers A10 will fix, or "none — <verdict>"]
@@ -533,7 +566,7 @@ For each fix-list item:
    - **PHPCS**: use the `drupal-coding-standards` skill on every changed file
    - **PHPStan**: run from the module root via ddev (host PHP version differs):
      ```bash
-     ddev exec bash -c "cd /var/www/html/web/modules/contrib/<project> && phpstan analyse --configuration=phpstan.neon --memory-limit=256M 2>&1"
+     ddev exec bash -c "cd /var/www/html/<webroot>/modules/contrib/<project> && phpstan analyse --configuration=phpstan.neon --memory-limit=256M 2>&1"
      ```
      Skip if the module has no `phpstan.neon`.
 3. Stage specific files: `git -C <webroot>/modules/contrib/<project> add <files>`
@@ -561,7 +594,7 @@ For each fix-list item:
    # fallback for non-migrated projects only:
    drupalorg mr:status <nid> <mr-iid> --format=llm
    ```
-8. If failing, stream the trace:
+9. If failing, stream the trace:
    ```bash
    GITLAB_HOST=git.drupalcode.org glab ci trace -b <branch> -R issue/<project>-<nid>
    # fallback if that 404s (no fork):
@@ -580,7 +613,8 @@ plain-language pass and confidence-qualified recommendation. Structure:
 - What was reviewed
 - Issues found and fixed — what changed and why, plus any non-obvious
   reasoning or tradeoff worth flagging (not just a checklist of fixes)
-- Issues remaining for the author
+- Issues remaining for the author, in 2 groups so a newcomer sees what matters:
+  "To fix" (blocking, each with its proof) and "Optional" (nitpicks)
 - Recommendation: Needs Work / RTBC / Looks good to me — matching the
   verdict from A9 (updated if the fix loop changed it), with a confidence
   qualifier (e.g. "RTBC, high confidence" / "Needs work, moderate
@@ -602,7 +636,7 @@ No MR exists yet. Read and understand the issue fully, write the plan to
 
 ### B1. Understand the issue
 
-From the issue comments gathered in Phase 1 / Phase 1b — either the
+From the issue comments gathered in Phase 0 and Phase 1, either the
 `--with-comments` output (Drupal.org queue) or the `fetch_issue_notes.py`
 output (migrated GitLab queue) — extract:
 - **Problem description** — what is broken or missing
@@ -724,22 +758,22 @@ plan are done, run pre-commit checks before staging anything:
 2. **PHPStan** — run from the module root via ddev (never `php vendor/bin/phpstan`
    — host PHP version differs from the container):
    ```bash
-   ddev exec bash -c "cd /var/www/html/web/modules/contrib/<project>--<nid> && phpstan analyse --configuration=phpstan.neon --memory-limit=256M 2>&1"
+   ddev exec bash -c "cd /var/www/html/<webroot>/modules/contrib/<project>--<nid> && phpstan analyse --configuration=phpstan.neon --memory-limit=256M 2>&1"
    ```
    Skip if the module has no `phpstan.neon`.
 3. **Tests** — if tests exist or were added, use the `drupal-automated-testing` skill.
    For Unit tests (no DB needed):
    ```bash
-   ddev exec phpunit --bootstrap /var/www/html/web/core/tests/bootstrap.php \
-     /var/www/html/web/modules/contrib/<project>--<nid>/tests/src/Unit \
+   ddev exec phpunit --bootstrap /var/www/html/<webroot>/core/tests/bootstrap.php \
+     /var/www/html/<webroot>/modules/contrib/<project>--<nid>/tests/src/Unit \
      --testdox 2>&1 | tail -40
    ```
    For Kernel/Functional tests (DB + base URL required):
    ```bash
    ddev exec bash -c "SIMPLETEST_BASE_URL=<site-url> \
      SIMPLETEST_DB=mysql://db:db@db/db \
-     phpunit -c /var/www/html/web/core/phpunit.xml.dist \
-     /var/www/html/web/modules/contrib/<project>--<nid>/tests/src/Kernel \
+     phpunit -c /var/www/html/<webroot>/core/phpunit.xml.dist \
+     /var/www/html/<webroot>/modules/contrib/<project>--<nid>/tests/src/Kernel \
      --testdox 2>&1" | tail -40
    ```
 4. **Pre-push preflight** — block on any failure before staging:

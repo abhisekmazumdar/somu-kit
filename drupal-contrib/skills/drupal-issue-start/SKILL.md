@@ -279,8 +279,8 @@ When the full diff was fetched, read it and produce:
 - **Verdict** — exactly one of:
   - `RTBC-ready` — pipeline passing, no open reviewer threads, diff matches
     the issue's resolution, tests present where the change warrants them
-  - `Close: <named gap>`, e.g. "close: missing a test for the empty-input
-    case" or "close: one open reviewer thread on line 42 unaddressed"
+  - `Almost: <named gap>`, e.g. "almost: missing a test for the empty-input
+    case" or "almost: one open reviewer thread on line 42 unaddressed"
   - `Needs work: <named gap>`, e.g. "needs work: pipeline failing on
     PHPStan" or "needs work: diff doesn't address the reported bug"
   - `Needs discussion: <what's contested>`: the approach itself is
