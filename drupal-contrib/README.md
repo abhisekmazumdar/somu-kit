@@ -114,7 +114,7 @@ Before a release, run 1 real issue in each client: load context, recon, review, 
 Built to follow [Drupal.org's AI policy](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal), not to work around it:
 
 - Nothing is posted in your name. Code goes to the issue fork MR for you to review. Comments, status changes and approvals are drafts in `issues/<nid>/drafts/`.
-- Every draft ends with the AI disclosure from `drupalorg-comment-format`. It never names a tool or model. `settings.json` blanks Claude Code's attribution, so there's no `Co-Authored-By` trailer. Codex's trailer is an account setting: turn it off there.
+- Every draft ends with the AI disclosure from `drupalorg-writing`. It never names a tool or model. `settings.json` blanks Claude Code's attribution, so there's no `Co-Authored-By` trailer. Codex's trailer is an account setting: turn it off there.
 - Nothing is pushed untested: PHPCS, PHPStan and relevant tests must pass locally first.
 - Earlier discussion is read first, so a rejected idea isn't proposed again.
 - Posting means you follow up when a maintainer replies.

@@ -64,7 +64,7 @@ def main():
     except OSError as error:
         die(f"Cannot read --description-file: {error}")
     if "AI disclosure" not in description:
-        die("Description has no AI disclosure — append the block from drupalorg-comment-format.")
+        die("Description has no AI disclosure — append the block from drupalorg-writing.")
 
     fork = api(f"/projects/{encode(args.fork)}")
     target = api(f"/projects/{encode(args.target)}")

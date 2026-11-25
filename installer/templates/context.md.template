@@ -69,7 +69,7 @@ The README is the **long-term memory** for each issue. It persists across sessio
 2. After every session, **`/issue-record-update <nid>`** logs what was done (no confirmation prompt — writes directly).
 3. To catch up after time away, use **`/drupal-issue-catchup <nid>`** instead of re-running issue-start.
 4. Screenshots go in `issues/<nid>/screenshots/` via **`/issue-record-screenshot`**, using the active client's connected browser integration or an existing Playwright session.
-5. Drafted comments are saved to `issues/<nid>/drafts/` via the **`drupalorg-comment-format`** skill.
+5. Drafted comments are saved to `issues/<nid>/drafts/` via the **`drupalorg-writing`** skill.
 
 ---
 
@@ -201,7 +201,7 @@ Skills live under `<skills-root>`. Shared role procedures are installed in `.dru
 - `drupal-issue-start` — **PRIMARY ENTRY POINT**: load/create issue record, fetch live context, present report and go checklist, wait for go
 - `issue-record-update` — append timestamped session log to `issues/<nid>/README.md` (writes directly, no confirmation)
 - `issue-record-screenshot` — capture a browser screenshot into `issues/<nid>/screenshots/` using the connected browser session
-- `drupalorg-comment-format` — draft and save comments to `issues/<nid>/drafts/` (HTML for Drupal.org, GFM for GitLab)
+- `drupalorg-writing` — draft and save comments to `issues/<nid>/drafts/` (HTML for Drupal.org, GFM for GitLab)
 
 ### Other key skills
 - `drupal-issue-reroll` — rebase a branch on latest upstream, run checks, force-push

@@ -1,38 +1,30 @@
 ---
-name: drupalorg-comment-format
+name: drupalorg-writing
 description: >
-  Use this skill when writing content destined for a Drupal.org issue queue — comments, issue descriptions, issue summaries, or proposed resolutions. Triggers on requests to draft, format, or compose text for Drupal.org issue fields, including explaining a patch, reporting a regression, describing a fix, or updating an issue summary. Covers both classic Drupal.org HTML formatting and GitLab Markdown for migrated queues. Does NOT apply to forum posts, README files, commit messages, GitHub PRs, or general documentation.
-version: 1.0.0
+  Write any text that will be posted on drupal.org or git.drupalcode.org: issue comments, review replies, new issues, issue summaries, proposed resolutions, MR descriptions and MR inline replies. Picks the right markup (classic Drupal.org HTML or GitLab Markdown), adds the AI disclosure, applies the voice rules and saves a draft in issues/<nid>/drafts/. Use when drafting, formatting or rewriting anything for a Drupal issue queue or merge request. Not for commit messages (drupal-gitlab) or posts outside drupal.org such as LinkedIn or blogs (write-like-abhisek).
 ---
 
-# Drupal.org Comment & Issue Formatting
+# Writing for drupal.org
 
-**Purpose:** Produce text that is correctly formatted for Drupal.org's text
-input fields — comments, issue descriptions, and issue summaries — following
-the platform's supported markup rules at https://www.drupal.org/filter/tips
+Everything posted on drupal.org or its GitLab goes through this skill. It
+never posts: it writes a draft the human reads, edits and posts.
 
----
+## What are you writing?
 
-## Migrated vs. Non-Migrated Issues
-
-Drupal.org projects fall into two categories. Always determine which before formatting:
-
-| Issue queue | Where comments live | Format to use |
+| Text | Markup | Structure |
 |---|---|---|
-| **Non-migrated** (classic Drupal.org) | drupal.org/project/foo/issues/NID | Drupal.org HTML (this skill) |
-| **Migrated** (GitLab work items) | git.drupalcode.org/project/foo/-/work_items/NID | **GitLab Markdown** |
+| Comment on a classic issue | Drupal.org HTML: `references/classic-html.md` | Comments and replies, below |
+| Comment on a migrated issue | GitLab Markdown | Comments and replies, below |
+| New issue or issue summary | HTML (classic) or Markdown (migrated) | `references/issue-summary.md` |
+| MR description | GitLab Markdown | The project's MR template; `drupal-gitlab` opens the MR |
+| MR inline reply | GitLab Markdown | 1 point per reply, 1-3 sentences |
 
-**How to detect a migrated queue:** The issue URL contains `/work_items/` or the issue body contains a line like "Migrated from Drupal.org". When migrated, **do not use this skill** — use standard GitLab Flavored Markdown (GFM) instead:
-- Fenced code blocks with triple backticks
-- `**bold**`, `*italic*`
-- `- ` or `* ` for bullet lists
-- `## Heading` for headings
-- `> blockquote`
-- Cross-references: `#NID` for issues, `!NID` for MRs (GitLab syntax)
+Every row ends with the AI disclosure and follows the voice rules.
 
-The AI disclosure below still applies for migrated issues, in its collapsible Markdown form.
-
----
+**Classic or migrated?** Migrated when the URL has `/work_items/` or the body
+says "Migrated from Drupal.org". Migrated queues and all MRs use GitLab
+Markdown: fenced code blocks, `**bold**`, `- ` lists, `## ` headings, `>`
+quotes, `#NID` for issues and `!NID` for MRs.
 
 ## AI disclosure — every issue, MR, and comment
 
@@ -68,111 +60,6 @@ _Used AI to help with research and writing (reviewing the MR diff, analysing the
 </details>
 ```
 
----
-
-## When This Skill Applies (non-migrated only)
-
-Activate whenever the user asks you to:
-- Write or draft a comment reply for a **non-migrated** Drupal.org issue
-- Create or draft a new Drupal.org issue (title + body)
-- Update or rewrite an issue summary / "Proposed resolution" section
-- Compose any text that will be pasted into a classic Drupal.org text field
-
----
-
-## Drupal.org Formatting Rules
-
-### Paragraphs and line breaks
-- Plain blank lines create paragraph breaks — no `<p>` tags needed.
-- A single newline inside a paragraph is treated as a space, not a `<br>`.
-- Use `<br>` only when you need a forced line break inside a paragraph.
-
-### Code
-- Wrap inline code with `<code>your_code()</code>`.
-- Wrap multi-line code blocks with `<pre><code>` ... `</code></pre>`.
-- PHP code using `<?php ?>` gets automatic syntax highlighting.
-- Do NOT use Markdown fenced code blocks (triple backticks) — they are not rendered on Drupal.org.
-
-### Text emphasis and structure
-Standard HTML tags render: `<strong>`, `<em>`, `<del>`/`<s>`, `<u>`, `<blockquote>`, `<sup>`, `<sub>`.
-Headings are `<h2>` through `<h6>` — no `<h1>`.
-
-### Lists
-```html
-<ul>
-  <li>Unordered item</li>
-</ul>
-
-<ol>
-  <li>Ordered item</li>
-</ol>
-
-<dl>
-  <dt>Term</dt>
-  <dd>Definition</dd>
-</dl>
-```
-
-### Links
-- URLs and email addresses are auto-linked — you can paste them bare.
-- For labelled links use: `<a href="https://example.com">link text</a>`
-
-### Issue cross-references
-- `[#1234]` auto-links to issue #1234 with its title appended automatically.
-- `[#1234-2]` links to comment #2 on issue #1234.
-- `[#1234@]` also prints the user the issue is assigned to.
-- Issue status is shown on hover automatically — no extra markup needed.
-
-### Tables
-Use standard HTML table markup: `<table>`, `<tr>`, `<th>`, `<td>`.
-
-### Images
-- Only images hosted on drupal.org may be embedded with `<img>` tags.
-- External image URLs are replaced with an error icon — never suggest them.
-
----
-
-## Issue Description Structure
-
-When drafting a **new issue**, follow this standard Drupal.org issue template:
-
-```html
-<h2>Problem/Motivation</h2>
-
-Describe what is wrong or what is missing and why it matters.
-
-<h2>Steps to reproduce</h2>
-
-<ol>
-  <li>Step one</li>
-  <li>Step two</li>
-</ol>
-
-<h2>Proposed resolution</h2>
-
-Describe the intended fix or approach.
-
-<h2>Remaining tasks</h2>
-
-<ul>
-  <li>Task one</li>
-</ul>
-
-<h2>User interface changes</h2>
-
-None. / Describe UI changes if any.
-
-<h2>API changes</h2>
-
-None. / Describe API changes if any.
-
-<h2>Data model changes</h2>
-
-None. / Describe schema/data changes if any.
-```
-
----
-
 ## Voice and Tone
 
 All Drupal.org content must follow the `write-like-abhisek` skill's technical
@@ -182,20 +69,18 @@ restating its rules. Constraints specific to issue-queue content:
 - No greeting, no opener — start with the fact, status, or problem.
 - Status updates are one line: "The MR functions correctly. I'm marking this as RTBC."
 - When responding to reviewer feedback: be candid about position changes. If the reviewer was right, say so plainly. "You are right. I removed it." beats hedged corporate acknowledgement every time.
-- A light, honest self-awareness is fine in informal review threads. "After going back and forth on it, I came around to agreeing with you" reads as human and direct. Don't sanitize it into bland acceptance. The position is always the human's: AI is never a co-decider ("we both"), and AI use goes in the disclosure line, not the prose.
+- A light, honest self-awareness is fine in informal review threads. "After a long back-and-forth with AI on it, I came around to agreeing with you" reads as human and direct. Don't sanitize it into bland acceptance. Mentioning AI is fine; naming a tool or model never is. The decision stays the human's ("I came around").
 - No em dashes (—) anywhere in a draft. Use a period, comma or colon. Readers spot them as AI text.
 
----
+## Comments and replies
 
-## Comment Reply Guidelines
-
-When drafting a **comment reply**:
+For any comment, MR reply or review:
 
 1. Be concise and specific. Reference the relevant code, function, or line.
-2. Use `[#NID]` to cross-reference related issues, `[#NID-N]` for specific comments, and `[#NID@]` to also name the assignee.
-3. Wrap all code examples in `<code>` or `<pre><code>` tags.
-4. If quoting a previous comment, use `<blockquote>` rather than copy-pasting.
-5. Use `<strong>` to highlight important points sparingly.
+2. Cross-reference issues the queue's way: `[#NID]` on classic queues (see `references/classic-html.md`), `#NID` and `!MR` on GitLab.
+3. Code goes in code markup for that surface (`<code>`/`<pre><code>` or backticks).
+4. Quote an earlier comment as a blockquote instead of pasting it.
+5. Bold sparingly.
 6. State clearly what action you are taking or recommending.
 7. If attaching a patch or MR, mention it explicitly at the end.
 8. Write for any reader of the queue, not just the issue author — plain,
@@ -211,11 +96,7 @@ When drafting a **comment reply**:
     verified" or "Needs work, moderate confidence: the fix addresses the
     reported bug but the edge case on empty input wasn't re-tested."
 
----
-
-## Output Format
-
-### Pre-output: plain-language and unslop passes
+## Before saving: plain-language pass
 
 Before output, check the draft yourself against rule 8 and the Voice and
 Tone rules: short sentences, concrete claims, no filler.
@@ -232,10 +113,9 @@ files, or imitate them yourself.
 
 ---
 
-### Always: save to file, no chat preview
+## Save to a draft file, no chat preview
 
-Regardless of issue type, write the comment to a file in the issue directory —
-do not also print a preview, rendered version, or HTML snippet in chat. The
+Whatever you're writing, save it to a file in the issue directory. Do not also print a preview, rendered version, or HTML snippet in chat. The
 file is the deliverable.
 
 ```
@@ -243,14 +123,14 @@ issues/<nid>/drafts/YYYY-MM-DD-HHmmss-<label>.md
 ```
 
 - Create the directory if it does not exist: `mkdir -p issues/<nid>/drafts`
-- `<label>` — 2–4 word slug derived from the comment purpose, e.g. `review-feedback`, `reroll-note`, `rtbc`
+- `<label>`: a 2-4 word slug for the purpose, e.g. `review-feedback`, `issue-summary`, `mr-description`, `rtbc`
 - File always uses `.md` extension
 - GitLab (migrated) queues: file content is GitLab Flavored Markdown, pasted as-is.
 - Drupal.org (non-migrated) queues: file content is the HTML source, pasted as-is.
 
 ---
 
-### After saving: open in the editor
+## After saving: open in the editor
 
 After the file is written, try to open it in the user's editor so they can
 review/paste from it directly:
@@ -266,5 +146,5 @@ review/paste from it directly:
 
 Then tell the user only:
 ```
-Comment saved to issues/<nid>/drafts/<filename>.md
+Draft saved to issues/<nid>/drafts/<filename>.md
 ```

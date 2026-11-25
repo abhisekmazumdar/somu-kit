@@ -391,7 +391,7 @@ human can skim in a few seconds — not paragraphs. Apply the discipline
 yourself: short sentences, concrete nouns, no filler ("leverages", "robust",
 "comprehensive"). The `technical-writing` and `unslop` skills are reserved
 for explicit user invocation, so never run them here; they're offered for
-drafted comments instead (`drupalorg-comment-format`).
+drafted comments instead (`drupalorg-writing`).
 
 ### Opening the record in the connected IDE
 

@@ -22,7 +22,7 @@ const flat = rel => read(rel).replace(/\s+/g, ' ');
 
 test('verdict and confidence examples use no em dash, so drafts copy none', () => {
   for (const rel of [
-    'skills/drupalorg-comment-format/SKILL.md',
+    'skills/drupalorg-writing/SKILL.md',
     'skills/drupal-issue-start/SKILL.md',
     'skills/issue-record-update/SKILL.md',
     'skills/issue-record-update/references/review-card.md',
@@ -30,12 +30,12 @@ test('verdict and confidence examples use no em dash, so drafts copy none', () =
   ]) {
     assert.doesNotMatch(flat(rel), /\b(RTBC|Close|Needs work|Needs discussion)\b[^"`\n]{0,3}—/i, rel);
   }
-  assert.match(read('skills/drupalorg-comment-format/SKILL.md'), /No em dashes \(—\) anywhere in a draft/);
+  assert.match(read('skills/drupalorg-writing/SKILL.md'), /No em dashes \(—\) anywhere in a draft/);
 });
 
 test('AI is never a co-decider in drafting guidance', () => {
   const voice = fs.readFileSync(require('node:path').join(__dirname, '../../core/skills/write-like-abhisek/SKILL.md'), 'utf8');
-  for (const [name, text] of [['write-like-abhisek', voice], ['drupalorg-comment-format', read('skills/drupalorg-comment-format/SKILL.md')]]) {
+  for (const [name, text] of [['write-like-abhisek', voice], ['drupalorg-writing', read('skills/drupalorg-writing/SKILL.md')]]) {
     assert.doesNotMatch(text, /with (Claude|AI)[^.\n]*we both/i, name);
     assert.doesNotMatch(text, /back-and-forth with Claude/i, name);
   }

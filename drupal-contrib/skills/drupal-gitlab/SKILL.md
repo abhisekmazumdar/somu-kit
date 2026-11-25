@@ -185,7 +185,7 @@ MR conventions:
 - Title: `{type}: #{issue-id} Short summary` — Conventional Commits format
 - Include `Closes #{issue-id}` in the description body
 - Always set `remove_source_branch: true`
-- End every MR body with the collapsible AI disclosure, after a blank line (or fill the template's AI disclosure section if it has one) — no tool or model names; `<uses>` is any of `research`, `writing`, `code`, in that order (full rules: `drupalorg-comment-format`):
+- End every MR body with the collapsible AI disclosure, after a blank line (or fill the template's AI disclosure section if it has one) — no tool or model names; `<uses>` is any of `research`, `writing`, `code`, in that order (full rules: `drupalorg-writing`):
   ```
   <details><summary>AI disclosure</summary>
 

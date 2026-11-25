@@ -13,9 +13,9 @@ const statement = 'Used AI to help with <uses> (<what it did>). The reasoning an
 const block = `<details><summary>AI disclosure</summary>\n\n_${statement} ([Drupal.org AI policy](${url}))_\n\n</details>`;
 const html = `<em><a href="${url}">AI disclosure</a>: ${statement}</em>`;
 
-// One format everywhere a post is drafted; drupalorg-comment-format holds the full rules.
+// One format everywhere a post is drafted; drupalorg-writing holds the full rules.
 for (const file of [
-  'skills/drupalorg-comment-format/SKILL.md',
+  'skills/drupalorg-writing/SKILL.md',
   'skills/drupal-gitlab/SKILL.md',
   'skills/drupal-gitlab/references/merge-requests.md',
   'templates/CLAUDE.md.template',
@@ -27,7 +27,7 @@ for (const file of [
 
 test('classic Drupal.org keeps the one-line HTML disclosure', () => {
   // <details> isn't verified to survive Drupal.org's text filter.
-  assert.ok(read('skills/drupalorg-comment-format/SKILL.md').includes(html));
+  assert.ok(read('skills/drupalorg-writing/SKILL.md').includes(html));
 });
 
 test('Claude Code adds no attribution of its own', () => {

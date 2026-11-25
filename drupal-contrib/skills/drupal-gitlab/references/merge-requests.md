@@ -23,7 +23,7 @@ glab mr view <mr-iid> -R project/<repo>
 cat .gitlab/merge_request_templates/Default.md
 ```
 
-Fill in the template and save to `/tmp/mr_body.md`. If the template has an AI disclosure section, fill it with the statement below as plain text; otherwise end the body with it, after a blank line (no tool or model names; `<uses>` is any of `research`, `writing`, `code`, in that order — full rules in `drupalorg-comment-format`):
+Fill in the template and save to `/tmp/mr_body.md`. If the template has an AI disclosure section, fill it with the statement below as plain text; otherwise end the body with it, after a blank line (no tool or model names; `<uses>` is any of `research`, `writing`, `code`, in that order — full rules in `drupalorg-writing`):
 
 ```
 <details><summary>AI disclosure</summary>

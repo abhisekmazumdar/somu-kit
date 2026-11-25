@@ -13,7 +13,7 @@ skills:
   - drupal-gitlab-inline-comments
   - drupal-automated-testing
   - drupal-coding-standards
-  - drupalorg-comment-format
+  - drupalorg-writing
   - ddev-expert
   - drupal-impact
   - diagnosing-bugs
@@ -575,7 +575,7 @@ Then go straight to A11.
 
 ### A11. Draft the issue comment (always)
 
-Use the `drupalorg-comment-format` skill formatting rules — including its
+Use the `drupalorg-writing` skill formatting rules — including its
 plain-language pass and confidence-qualified recommendation. Structure:
 - What was reviewed
 - Issues found and fixed — what changed and why, plus any non-obvious
@@ -585,7 +585,7 @@ plain-language pass and confidence-qualified recommendation. Structure:
   verdict from A9 (updated if the fix loop changed it), with a confidence
   qualifier (e.g. "RTBC, high confidence" / "Needs work, moderate
   confidence, pending a second pass")
-- AI disclosure, last — `drupalorg-comment-format`'s format (collapsible on GitLab), no tool or model names
+- AI disclosure, last — `drupalorg-writing`'s format (collapsible on GitLab), no tool or model names
 
 Write the draft to `issues/<nid>/drafts/<YYYY-MM-DD>-comment.md`. Never post
 it. Then end with the **Final report** (below). In it, remind the human that

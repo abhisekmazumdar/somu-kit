@@ -275,7 +275,7 @@ The reply is the go for what it names — no second confirmation.
     the pushed MR
   - Rebase needed → read `<skills-root>/drupal-issue-reroll/SKILL.md` and
     follow it
-  - Draft a comment → read `<skills-root>/drupalorg-comment-format/SKILL.md`
+  - Draft a comment → read `<skills-root>/drupalorg-writing/SKILL.md`
     first and follow it (markup, AI disclosure); write it to
     `issues/<nid>/drafts/<YYYY-MM-DD>-<kind>.md`, never post it
   - Repo not set up → use `drupal-repo-setup` agent

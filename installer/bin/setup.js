@@ -256,7 +256,7 @@ async function main() {
     {
       name: 'unslop',
       repo: 'cursor/plugins',
-      usedBy: 'Strips AI writing tells from issue comments and commit messages, alongside drupalorg-comment-format.',
+      usedBy: 'Strips AI writing tells from drafts and commit messages, alongside drupalorg-writing.',
     },
     {
       name: 'technical-writing',
