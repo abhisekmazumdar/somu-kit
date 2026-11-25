@@ -11,17 +11,16 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const root = path.resolve(__dirname, '..');
-const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
+const { src, skillNames, listFiles } = require('./layout');
+const read = (rel) => fs.readFileSync(src(rel), 'utf8');
 
 // Every cursor/plugins skill pulled by bin/setup.js ships the flag upstream.
 const userRun = ['how', 'why', 'blast-radius', 'interrogate', 'tdd', 'unslop', 'technical-writing'];
 
-const localSkills = fs.readdirSync(path.join(root, 'skills'))
-  .filter(n => fs.statSync(path.join(root, 'skills', n)).isDirectory());
+const localSkills = skillNames();
 const flaggedLocal = localSkills.filter(n => /^disable-model-invocation:\s*true/m.test(read(`skills/${n}/SKILL.md`)));
 const externals = [...read('bin/setup.js').matchAll(/name:\s*'([^']+)'/g)].map(m => m[1]);
-const agents = fs.readdirSync(path.join(root, 'agents')).filter(f => f.endsWith('.md'));
+const agents = fs.readdirSync(src('agents')).filter(f => f.endsWith('.md'));
 
 function preloads(file) {
   const block = read(`agents/${file}`).match(/^skills:\n((?: {2}- .+\n)+)/m);

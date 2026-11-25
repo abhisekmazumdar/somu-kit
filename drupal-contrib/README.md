@@ -1,10 +1,10 @@
 # drupal-claude-skills
 
-[![CI](https://github.com/abhisekmazumdar/drupal-contrib-claude-skills/actions/workflows/ci.yml/badge.svg)](https://github.com/abhisekmazumdar/drupal-contrib-claude-skills/actions/workflows/ci.yml)
+[![CI](https://github.com/abhisekmazumdar/somu-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/abhisekmazumdar/somu-kit/actions/workflows/ci.yml)
 
 A shared Drupal contribution toolkit for Claude Code and Codex. Install it into your Drupal workspace to investigate issues, review merge requests, push fixes to an MR for you to review, run independent tests, and keep issue records across sessions.
 
-[Full documentation](https://abhisekmazumdar.github.io/drupal-contrib-claude-skills/) covers the skills, agents, multi-site workflow, and [client compatibility](https://abhisekmazumdar.github.io/drupal-contrib-claude-skills/#clients).
+[Full documentation](https://abhisekmazumdar.github.io/somu-kit/) covers the skills, agents, multi-site workflow, and [client compatibility](https://abhisekmazumdar.github.io/somu-kit/#clients).
 
 The workflows support [Drupal.org's AI contribution policy](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal). You remain responsible for reviewing submissions, disclosing AI use, and following up with maintainers.
 
@@ -25,20 +25,20 @@ Run from the Drupal workspace, not this package's source directory:
 
 ```bash
 # Existing command stays compatible: defaults to Claude Code on first install
-npx github:abhisekmazumdar/drupal-contrib-claude-skills
+npx github:abhisekmazumdar/somu-kit
 
 # Install for both clients
-npx github:abhisekmazumdar/drupal-contrib-claude-skills --target both
+npx github:abhisekmazumdar/somu-kit --target both
 
 # Or select one client
-npx github:abhisekmazumdar/drupal-contrib-claude-skills --target codex
-npx github:abhisekmazumdar/drupal-contrib-claude-skills --target claude-code
+npx github:abhisekmazumdar/somu-kit --target codex
+npx github:abhisekmazumdar/somu-kit --target claude-code
 
 # Preview without writing or downloading
-npx github:abhisekmazumdar/drupal-contrib-claude-skills --target both --dry-run
+npx github:abhisekmazumdar/somu-kit --target both --dry-run
 ```
 
-For a local checkout, use `npx /path/to/drupal-contrib-claude-skills --target both`.
+For a local checkout, use `npx /path/to/somu-kit --target both`.
 Use `--yes` to accept detected defaults and `--skip-external` to skip upstream downloads (already-installed external skills are kept).
 The installer detects Drupal at the workspace root or in top-level subdirectories and records site settings for future runs.
 
@@ -86,7 +86,7 @@ The entry skill loads prior context, fetches issue/MR activity, performs automat
 | Milo (`drupal-e2e-tester`) | Independent PHPUnit/Playwright testing; never fixes module code |
 | Sage (`drupal-issue-catchup`) | Briefing on changes since the previous session |
 
-To map what a diff touches before reading it (services, hooks, plugins, routes, config schema, and their consumers), run `/drupal-impact <module-path>` on its own, or install just that skill with `npx skills add abhisekmazumdar/drupal-contrib-claude-skills --skill drupal-impact` (offline: copy `skills/drupal-impact/` into your skills directory; the script is plain `python3 drupal_impact.py <module-dir>`).
+To map what a diff touches before reading it (services, hooks, plugins, routes, config schema, and their consumers), run `/drupal-impact <module-path>` on its own, or install just that skill with `npx skills add abhisekmazumdar/somu-kit --skill drupal-impact` (offline: copy `skills/drupal-impact/` into your skills directory; the script is plain `python3 drupal_impact.py <module-dir>`).
 
 `/drupal-issue-start` stops once, with a readiness checklist and the steps it will take. Say go and it reviews, fixes, commits, pushes to the issue fork, and opens or updates the MR — you review the code there. Comments are never posted for you: drafts go to `issues/<nid>/drafts/`. Hooks and client permissions supplement these workflow instructions; they are not identical security boundaries across clients.
 

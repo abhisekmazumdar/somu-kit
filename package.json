@@ -1,15 +1,16 @@
 {
-  "name": "drupal-claude-skills",
+  "name": "somu-kit",
   "version": "1.0.0",
-  "description": "Shared Claude Code and Codex toolkit for Drupal open source contribution",
+  "description": "Abhisek Mazumdar's skills. npx installs the Drupal contribution toolkit (drupal + drupal-contrib skills and agents) into a workspace for Claude Code and Codex.",
   "bin": {
-    "drupal-claude-skills": "./bin/setup.js"
+    "drupal-claude-skills": "./installer/bin/setup.js"
   },
   "files": [
-    "bin/",
-    "skills/",
-    "agents/",
-    "templates/"
+    "installer/bin/",
+    "installer/templates/",
+    "drupal/skills/",
+    "drupal-contrib/skills/",
+    "drupal-contrib/agents/"
   ],
   "engines": {
     "node": ">=18"

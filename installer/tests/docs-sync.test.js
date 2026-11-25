@@ -10,9 +10,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const root = path.resolve(__dirname, '..');
-const docs = fs.readFileSync(path.join(root, 'docs/index.html'), 'utf8');
-const setupSource = fs.readFileSync(path.join(root, 'bin/setup.js'), 'utf8');
+const { src, skillNames, listFiles } = require('./layout');
+const docs = fs.readFileSync(src('docs/index.html'), 'utf8');
+const setupSource = fs.readFileSync(src('bin/setup.js'), 'utf8');
 
 function docsSection(id) {
   const match = docs.match(new RegExp(`<section id="${id}">([\\s\\S]*?)<\\/section>`));
@@ -25,12 +25,11 @@ function tableNames(sectionText) {
 }
 
 function localSkillNames() {
-  return fs.readdirSync(path.join(root, 'skills')).filter(name =>
-    fs.statSync(path.join(root, 'skills', name)).isDirectory());
+  return skillNames();
 }
 
 function agentNames() {
-  return fs.readdirSync(path.join(root, 'agents'))
+  return fs.readdirSync(src('agents'))
     .filter(f => f.endsWith('.md'))
     .map(f => path.basename(f, '.md'));
 }

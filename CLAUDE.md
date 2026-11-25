@@ -4,30 +4,38 @@ Guidance for Claude Code working on this repo.
 
 ## What this repo is
 
-A **Claude Code skills and agents package** for Drupal open source contribution — not a Drupal project. No PHP, no Composer, no web server. This repo's output is a set of files installed into a user's Drupal workspace via `npx github:abhisekmazumdar/drupal-contrib-claude-skills` (or `npx /path/to/local/clone`, see README.md).
+A **Claude Code skills and agents package** for Drupal open source contribution — not a Drupal project. No PHP, no Composer, no web server. This repo's output is a set of files installed into a user's Drupal workspace via `npx github:abhisekmazumdar/somu-kit` (or `npx /path/to/local/clone`, see README.md).
 
 ---
 
 ## Repository layout
 
 ```
-bin/
-  setup.js               # CLI entry point
-  install.js             # writer()/installTargets() — the actual file-writing logic
-  external-skills.js     # pulls externalSkills at install time
-  local-setup.js         # applies the git-ignored local.json (personal settings)
-skills/                  # skill directories — each has a SKILL.md
-agents/                  # agent markdown files
-templates/
-  CLAUDE.md.template, AGENTS.md.template   # rendered with {{VAR}} substitution
-  settings.json.template
-  codex/                 # Codex-specific config/rules/hooks templates
-  hooks/
-    block-dangerous-git.sh   # copied verbatim, chmod +x'd
-    check-command.py         # Codex's equivalent guardrail (no {{VAR}} either)
-tests/                   # node --test, run in CI
-docs/index.html          # hand-written reference site — see below
+core/                    # generic skills, Claude Code plugin only (never mentions Drupal)
+drupal/skills/           # skills for any Drupal project
+drupal-contrib/
+  skills/                # drupal.org + GitLab contribution skills
+  agents/                # agent markdown files
+installer/
+  bin/
+    setup.js             # CLI entry point
+    install.js           # writer()/installTargets(): the actual file-writing logic
+    external-skills.js   # pulls externalSkills at install time
+    local-setup.js       # applies the git-ignored installer/local.json (personal settings)
+  templates/
+    CLAUDE.md.template, AGENTS.md.template   # rendered with {{VAR}} substitution
+    settings.json.template
+    codex/               # Codex-specific config/rules/hooks templates
+    hooks/
+      block-dangerous-git.sh   # copied verbatim, chmod +x'd
+      check-command.py         # Codex's equivalent guardrail (no {{VAR}} either)
+  tests/                 # node --test, run in CI; tests/layout.js maps paths
+docs/index.html          # hand-written reference site, see below
 ```
+
+The installer flattens `drupal/skills/` and `drupal-contrib/skills/` into 1 skills root in the target workspace. It never installs `core/`.
+
+Short paths below: `bin/`, `templates/` and `tests/` are under `installer/`. `skills/<name>` is in `drupal/skills/` or `drupal-contrib/skills/`. `agents/` is `drupal-contrib/agents/`.
 
 ---
 
@@ -36,10 +44,10 @@ docs/index.html          # hand-written reference site — see below
 No build step, no `npm run` scripts. CI (`.github/workflows/ci.yml`) runs these; run the same after touching `bin/`, `skills/`, `agents/`, or `templates/`:
 
 ```bash
-node --check bin/setup.js bin/install.js bin/external-skills.js bin/local-setup.js
-node --test tests/*.test.js   # includes tests/docs-sync.test.js — see below
-grep -rn "{{" skills/ agents/   # must be empty — {{VAR}} only belongs in templates/
-node -e "JSON.parse(require('fs').readFileSync('templates/settings.json.template','utf8').replace(/\{\{[A-Z_]+\}\}/g,'placeholder'))"
+node --check installer/bin/*.js
+node --test installer/tests/*.test.js   # includes tests/docs-sync.test.js — see below
+grep -rn "{{" drupal/skills drupal-contrib/skills drupal-contrib/agents   # must be empty — {{VAR}} only belongs in templates/
+node -e "JSON.parse(require('fs').readFileSync('installer/templates/settings.json.template','utf8').replace(/\{\{[A-Z_]+\}\}/g,'placeholder'))"
 ```
 
 See "Testing setup changes" below to exercise `bin/setup.js` end-to-end.

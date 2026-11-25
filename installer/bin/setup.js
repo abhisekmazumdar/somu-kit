@@ -11,6 +11,11 @@ const { applyLocal } = require('./local-setup');
 const { options, readState, localOverrides, writer, installTargets, symlinkAncestor } = require('./install');
 
 const PACKAGE_ROOT = path.join(__dirname, '..');
+// Skills and agents live in the somu-kit plugin folders at the repo root.
+// The installer flattens both plugins' skills into one skills root.
+const REPO_ROOT = path.join(PACKAGE_ROOT, '..');
+const SKILL_SOURCES = ['drupal', 'drupal-contrib'].map(plugin => path.join(REPO_ROOT, plugin, 'skills'));
+const AGENTS_DIR = path.join(REPO_ROOT, 'drupal-contrib', 'agents');
 const CWD = process.cwd();
 const LOCK_FILE = path.join(CWD, '.drupal-contrib', 'install.json');
 // Git-ignored personal settings; see bin/local-setup.js. Tests point this elsewhere.
@@ -286,7 +291,7 @@ async function main() {
   ];
 
   installTargets({
-    cwd: CWD, packageRoot: PACKAGE_ROOT, targets, output, render: renderTemplate, vars,
+    cwd: CWD, packageRoot: PACKAGE_ROOT, skillSources: SKILL_SOURCES, agentsDir: AGENTS_DIR, targets, output, render: renderTemplate, vars,
     externalSkills: externalSkills.map(({ name }) => name),
   });
 

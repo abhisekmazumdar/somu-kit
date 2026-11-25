@@ -241,8 +241,8 @@
         The package itself is not a Drupal project. There's no PHP, no Composer, no web server here. Its
         output is the set of files installed into <em>your</em> Drupal workspace via:
       </p>
-      <pre><code>npx github:abhisekmazumdar/drupal-contrib-claude-skills</code></pre>
-      <p>See the <a href="https://github.com/abhisekmazumdar/drupal-contrib-claude-skills">GitHub repository</a> for source and issues.</p>
+      <pre><code>npx github:abhisekmazumdar/somu-kit</code></pre>
+      <p>See the <a href="https://github.com/abhisekmazumdar/somu-kit">GitHub repository</a> for source and issues.</p>
     </section>
 
     <section id="installation">
@@ -258,15 +258,15 @@
       </ul>
 
       <h3>Run it</h3>
-      <pre><code>npx github:abhisekmazumdar/drupal-contrib-claude-skills</code></pre>
+      <pre><code>npx github:abhisekmazumdar/somu-kit</code></pre>
       <p>Add a shell alias so you don't have to remember it:</p>
       <pre><code># add to ~/.zshrc or ~/.bashrc
-alias drupal-claude-skills='npx --yes github:abhisekmazumdar/drupal-contrib-claude-skills'</code></pre>
+alias drupal-claude-skills='npx --yes github:abhisekmazumdar/somu-kit'</code></pre>
       <p><code>--yes</code> skips npx's "ok to install?" confirmation. Safe here since this is a project you control.</p>
 
       <h3>Alternative: clone locally</h3>
       <p>Prefer a pinned copy (offline reuse, a specific commit, or editing the skills yourself)?</p>
-      <pre><code>git clone git@github.com:abhisekmazumdar/drupal-contrib-claude-skills.git /path/to/drupal-claude-skills
+      <pre><code>git clone git@github.com:abhisekmazumdar/somu-kit.git /path/to/drupal-claude-skills
 npx /path/to/drupal-claude-skills</code></pre>
 
       <h3>What the setup script asks</h3>
@@ -300,7 +300,7 @@ MariaDB version [11.8]:</code></pre>
 
       <h3>Updating</h3>
       <p><strong>Installed via <code>npx github:...</code>:</strong> just re-run the same command. <code>npx</code> fetches the current <code>main</code> branch each time.</p>
-      <pre><code>npx github:abhisekmazumdar/drupal-contrib-claude-skills</code></pre>
+      <pre><code>npx github:abhisekmazumdar/somu-kit</code></pre>
       <p><strong>Cloned locally:</strong> pull first, then re-run.</p>
       <pre><code>git -C /path/to/drupal-claude-skills pull
 npx /path/to/drupal-claude-skills</code></pre>
@@ -378,23 +378,26 @@ npx /path/to/drupal-claude-skills</code></pre>
 
     <section id="repo-layout">
       <h2>Repository layout</h2>
-      <pre><code>drupal-claude-skills/
-  bin/
-    setup.js              # CLI entry point, run via npx github:abhisekmazumdar/drupal-contrib-claude-skills
-  skills/                 # skill directories, each contains a SKILL.md, copied as-is
-  agents/                 # shared role procedures and Claude metadata
-  templates/
-    context.md.template    # shared site/workflow guidance with {{VAR}} substitution
-    CLAUDE.md.template     # Claude entry instructions
-    AGENTS.md.template     # Codex entry instructions
-    settings.json.template # Claude permissions and hooks
-    mcp.json.template      # Claude project MCP server
-    codex/                 # Codex config, hooks, and rules
-    hooks/                 # shared shell wrapper and Python command guard
-  tests/                   # Node built-in installer and policy tests
+      <pre><code>somu-kit/
+  core/                   # generic skills (Claude Code plugin, not installed by npx)
+  drupal/skills/          # skills for any Drupal project, copied as-is
+  drupal-contrib/
+    skills/               # contribution skills, copied as-is
+    agents/               # shared role procedures and Claude metadata
+  installer/
+    bin/
+      setup.js            # CLI entry point, run via npx github:abhisekmazumdar/somu-kit
+    templates/
+      context.md.template    # shared site/workflow guidance with {{VAR}} substitution
+      CLAUDE.md.template     # Claude entry instructions
+      AGENTS.md.template     # Codex entry instructions
+      settings.json.template # Claude permissions and hooks
+      mcp.json.template      # Claude project MCP server
+      codex/                 # Codex config, hooks, and rules
+      hooks/                 # shared shell wrapper and Python command guard
+    tests/                 # Node built-in installer and policy tests
   docs/                   # this documentation site
   package.json
-  README.md
   CLAUDE.md               # guidance for Claude Code when working on this repo</code></pre>
       <p>
         <code>{{VAR}}</code> placeholders are substituted at install time <strong>only</strong> for files in
@@ -407,10 +410,10 @@ npx /path/to/drupal-claude-skills</code></pre>
     <section id="clients">
       <h2>Claude Code and Codex</h2>
       <p>The Drupal procedures and issue records have one source. The installer generates each client's entry instructions, agent format, and configuration.</p>
-      <pre><code>npx github:abhisekmazumdar/drupal-contrib-claude-skills --target both
-npx github:abhisekmazumdar/drupal-contrib-claude-skills --target codex
-npx github:abhisekmazumdar/drupal-contrib-claude-skills --target claude-code
-npx github:abhisekmazumdar/drupal-contrib-claude-skills --target both --dry-run</code></pre>
+      <pre><code>npx github:abhisekmazumdar/somu-kit --target both
+npx github:abhisekmazumdar/somu-kit --target codex
+npx github:abhisekmazumdar/somu-kit --target claude-code
+npx github:abhisekmazumdar/somu-kit --target both --dry-run</code></pre>
       <p>First installs default to Claude Code. Later runs without a target update all recorded targets. Use <code>--yes</code> to accept detected defaults and <code>--skip-external</code> to omit upstream downloads. Preview performs no writes or downloads. No target is uninstalled implicitly.</p>
       <table>
         <tr><th>Capability</th><th>Claude Code</th><th>Codex CLI/IDE</th></tr>
@@ -841,13 +844,13 @@ node -e "JSON.parse(require('fs').readFileSync('templates/settings.json.template
 npx /path/to/this/repo</code></pre>
       <p>Then verify: no <code>{{VAR}}</code> left in installed skills/agents, the lockfile was written, and MCP servers appear in <code>.mcp.json</code> (Claude Code) or <code>.codex/config.toml</code> (Codex). Re-running is non-interactive once the lockfile exists.</p>
       <p>Full contribution and architecture guidance for working on this repo itself lives in
-        <a href="https://github.com/abhisekmazumdar/drupal-contrib-claude-skills/blob/main/CLAUDE.md">CLAUDE.md</a>.</p>
+        <a href="https://github.com/abhisekmazumdar/somu-kit/blob/main/CLAUDE.md">CLAUDE.md</a>.</p>
     </section>
   </main>
 </div>
 <footer>
   <p>
-    <a href="https://github.com/abhisekmazumdar/drupal-contrib-claude-skills">drupal-contrib-claude-skills</a>
+    <a href="https://github.com/abhisekmazumdar/somu-kit">somu-kit</a>
     on GitHub · MIT License
   </p>
 </footer>

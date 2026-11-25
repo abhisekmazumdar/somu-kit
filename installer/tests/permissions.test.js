@@ -5,8 +5,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const root = path.resolve(__dirname, '..');
-const raw = fs.readFileSync(path.join(root, 'templates/settings.json.template'), 'utf8');
+const { src, skillNames, listFiles } = require('./layout');
+const raw = fs.readFileSync(src('templates/settings.json.template'), 'utf8');
 const { permissions } = JSON.parse(raw.replace(/\{\{[A-Z_]+\}\}/g, 'placeholder'));
 
 // Approximates Claude Code's Bash rule matching: `*` stands for any text, and

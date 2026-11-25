@@ -9,8 +9,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const root = path.resolve(__dirname, '..');
-const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
+const { src, skillNames, listFiles } = require('./layout');
+const read = (rel) => fs.readFileSync(src(rel), 'utf8');
 
 const start = 'skills/drupal-issue-start/SKILL.md';
 const agent = 'agents/drupal-issue-agent.md';

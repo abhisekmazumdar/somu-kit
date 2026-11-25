@@ -22,14 +22,11 @@ jobs:
 
       - name: Syntax check
         run: |
-          node --check bin/setup.js
-          node --check bin/install.js
-          node --check bin/external-skills.js
-          node --check bin/local-setup.js
-          bash -n templates/hooks/block-dangerous-git.sh
+          for f in installer/bin/*.js; do node --check "$f"; done
+          bash -n installer/templates/hooks/block-dangerous-git.sh
 
       - name: Installer, configuration, and command guard tests
-        run: node --test tests/*.test.js
+        run: node --test installer/tests/*.test.js
 
       - name: Validate skill and agent frontmatter
         run: |
@@ -48,16 +45,16 @@ jobs:
             else if (name[1] !== expectedName) fail(file + ': name \'' + name[1] + '\' does not match \'' + expectedName + '\'');
             if (!/^description:/m.test(fm)) fail(file + ': missing description: field');
           }
-          for (const skill of fs.readdirSync('skills')) {
-            const skillDir = path.join('skills', skill);
+          for (const skill of ['core', 'drupal', 'drupal-contrib'].flatMap(p => fs.readdirSync(path.join(p, 'skills')).map(s => path.join(p, 'skills', s)))) {
+            const skillDir = skill;
             if (!fs.statSync(skillDir).isDirectory()) continue;
             const skillFile = fs.readdirSync(skillDir).find(f => f.toLowerCase() === 'skill.md');
             if (!skillFile) { fail('Missing SKILL.md in ' + skillDir); continue; }
-            checkFrontmatter(path.join(skillDir, skillFile), skill);
+            checkFrontmatter(path.join(skillDir, skillFile), path.basename(skill));
           }
-          for (const agent of fs.readdirSync('agents')) {
+          for (const agent of fs.readdirSync('drupal-contrib/agents')) {
             if (!agent.endsWith('.md')) continue;
-            checkFrontmatter(path.join('agents', agent), path.basename(agent, '.md'));
+            checkFrontmatter(path.join('drupal-contrib/agents', agent), path.basename(agent, '.md'));
           }
           if (failed) process.exit(1);
           console.log('All skill and agent frontmatter OK');
@@ -79,10 +76,10 @@ jobs:
             return found;
           }
           let failed = false;
-          for (const dir of ['skills', 'agents']) {
+          for (const dir of ['drupal/skills', 'drupal-contrib/skills', 'drupal-contrib/agents']) {
             if (scanDir(dir).size) { console.error('Template variables are forbidden in ' + dir); failed = true; }
           }
-          for (const v of new Set([...scanDir('skills'), ...scanDir('agents'), ...scanDir('templates')])) {
+          for (const v of new Set([...scanDir('drupal/skills'), ...scanDir('drupal-contrib/skills'), ...scanDir('drupal-contrib/agents'), ...scanDir('installer/templates')])) {
             if (!knownVars.has(v)) { console.error('Unhandled template variable: {{' + v + '}}'); failed = true; }
           }
           if (failed) process.exit(1);
@@ -93,7 +90,7 @@ jobs:
         run: |
           node -e "
           const fs = require('fs');
-          const content = fs.readFileSync('templates/settings.json.template', 'utf8').replace(/\{\{[A-Z_]+\}\}/g, 'placeholder');
+          const content = fs.readFileSync('installer/templates/settings.json.template', 'utf8').replace(/\{\{[A-Z_]+\}\}/g, 'placeholder');
           try { JSON.parse(content); console.log('settings.json.template is valid JSON'); }
           catch (e) { console.error('settings.json.template invalid JSON:', e.message); process.exit(1); }
           "

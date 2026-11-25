@@ -220,7 +220,7 @@ function writer(cwd, previous = {}, dryRun = false, overrides = []) {
   // moves them to the end of `files` and breaks idempotency between runs.
   function copyManaged(source, destination, exclude = new Set(), { renameFile, transformContent, shallow, preserve } = {}) {
     const written = new Set(preserve);
-    (function walk(src, dest) {
+    function walk(src, dest) {
       for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
         if (exclude.has(entry.name)) continue;
         const s = path.join(src, entry.name);
@@ -236,7 +236,10 @@ function writer(cwd, previous = {}, dryRun = false, overrides = []) {
         forceWrite(relative, content);
         written.add(relative);
       }
-    })(source, destination);
+    }
+    // A list of sources is merged into one destination; prune only once, at
+    // the end, so files from an earlier source aren't deleted as stale.
+    for (const src of [].concat(source)) walk(src, destination);
     prune(destination.split(path.sep).join('/') + '/', written);
   }
   // Upserts a toolkit-managed block inside a file that may already exist
@@ -311,8 +314,8 @@ function agentToml(content) {
   return `name = ${JSON.stringify(name)}\ndescription = ${JSON.stringify(description)}\ndeveloper_instructions = ${JSON.stringify(instructions)}\n`;
 }
 
-function installTargets({ cwd, packageRoot, targets, output, render, vars, externalSkills = [] }) {
-  output.copyManaged(path.join(packageRoot, 'agents'), '.drupal-contrib/agents');
+function installTargets({ cwd, packageRoot, skillSources, agentsDir, targets, output, render, vars, externalSkills = [] }) {
+  output.copyManaged(agentsDir, '.drupal-contrib/agents');
   output.write('.drupal-contrib/context.md', render(path.join(packageRoot, 'templates', 'context.md.template'), vars));
   // If CLAUDE.md and AGENTS.md are kept as one shared file (either symlinked
   // to the other), resolve that up front — whichever target's upsertBlock
@@ -330,7 +333,7 @@ function installTargets({ cwd, packageRoot, targets, output, render, vars, exter
     // installExternal(), not this walk — preserve them or prune() deletes
     // them on every re-run (permanently, when offline or --skip-external).
     const externalDirs = externalSkills.map(name => `${skillsRoot}/${name}/`);
-    output.copyManaged(path.join(packageRoot, 'skills'), skillsRoot, new Set(), {
+    output.copyManaged(skillSources, skillsRoot, new Set(), {
       preserve: new Set(Object.keys(output.files).filter(relative => externalDirs.some(dir => relative.startsWith(dir)))),
     });
     const hookPath = path.join(cwd, root, 'hooks', 'block-dangerous-git.sh');
@@ -346,7 +349,7 @@ function installTargets({ cwd, packageRoot, targets, output, render, vars, exter
     const instruction = claude ? 'CLAUDE.md' : 'AGENTS.md';
     output.upsertBlock(instruction, fs.readFileSync(path.join(packageRoot, 'templates', `${instruction}.template`), 'utf8'), 'drupal-contrib-claude-skills', { shared: sharedInstructionFile });
     if (claude) {
-      output.copyManaged(path.join(packageRoot, 'agents'), '.claude/agents');
+      output.copyManaged(agentsDir, '.claude/agents');
       // Serialize after substitution so quotes/backslashes in executable paths remain valid JSON.
       const settings = JSON.parse(fs.readFileSync(path.join(packageRoot, 'templates/settings.json.template'), 'utf8'));
       settings.hooks.PreToolUse[0].hooks[0].command = `bash ${quote(hookPath)}`;
@@ -364,7 +367,7 @@ function installTargets({ cwd, packageRoot, targets, output, render, vars, exter
       const hooks = JSON.parse(fs.readFileSync(path.join(packageRoot, 'templates/codex/hooks.json.template'), 'utf8'));
       hooks.hooks.PreToolUse[0].hooks[0].command = `bash ${quote(hookPath)}`;
       output.write('.codex/hooks.json', JSON.stringify(hooks, null, 2) + '\n');
-      output.copyManaged(path.join(packageRoot, 'agents'), '.codex/agents', new Set(), {
+      output.copyManaged(agentsDir, '.codex/agents', new Set(), {
         renameFile: file => file.endsWith('.md') ? file.replace(/\.md$/, '.toml') : null,
         transformContent: agentToml,
         shallow: true,

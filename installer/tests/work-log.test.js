@@ -10,8 +10,8 @@ const os = require('node:os');
 const path = require('node:path');
 const { applyLocal } = require('../bin/local-setup');
 
-const root = path.resolve(__dirname, '..');
-const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
+const { src, skillNames, listFiles } = require('./layout');
+const read = (rel) => fs.readFileSync(src(rel), 'utf8');
 
 const visits = ['skills/drupal-issue-start/SKILL.md', 'agents/drupal-issue-catchup.md'];
 const record = 'skills/issue-record-update/SKILL.md';

@@ -12,8 +12,8 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
-const root = path.resolve(__dirname, '..');
-const script = path.join(root, 'skills/drupal-impact/drupal_impact.py');
+const { src, skillNames, listFiles } = require('./layout');
+const script = src('skills/drupal-impact/drupal_impact.py');
 const fixture = path.join(__dirname, 'fixtures/drupal-impact');
 
 const has = (cmd) => spawnSync(cmd, ['--version'], { encoding: 'utf8' }).status === 0;

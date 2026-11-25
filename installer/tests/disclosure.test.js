@@ -5,8 +5,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const root = path.resolve(__dirname, '..');
-const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
+const { src, skillNames, listFiles } = require('./layout');
+const read = (file) => fs.readFileSync(src(file), 'utf8');
 const url = 'https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal#s-disclosure';
 const statement = 'Used AI to help with <uses> (<what it did>). The reasoning and positions are my own, and I reviewed everything before posting.';
 // GitLab collapses it under a visible toggle; the link can't sit in <summary>, where a click only toggles.
@@ -37,8 +37,8 @@ test('Claude Code adds no attribution of its own', () => {
 });
 
 test('no legacy or tool-naming disclosure formats remain', () => {
-  const files = ['skills', 'agents'].flatMap((dir) => fs.readdirSync(path.join(root, dir), { recursive: true })
-    .filter((f) => f.endsWith('.md')).map((f) => path.join(dir, f)));
+  const files = ['skills', 'agents'].flatMap((dir) => listFiles(dir))
+    .filter((f) => f.endsWith('.md'));
   for (const file of files) {
     const text = read(file);
     assert.doesNotMatch(text, /Used \[tool\]|_AI assisted|_\[AI disclosure\]/, file);

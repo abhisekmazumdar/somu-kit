@@ -9,7 +9,7 @@ const { spawnSync } = require('node:child_process');
 const { writer, agentToml, localOverrides } = require('../bin/install');
 const { installExternal } = require('../bin/external-skills');
 
-const root = path.resolve(__dirname, '..');
+const { src, skillNames, listFiles } = require('./layout');
 function workspace(t) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "drupal toolkit 'test-"));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
@@ -21,7 +21,7 @@ function put(cwd, name, text) {
 }
 function read(cwd, name) { return fs.readFileSync(path.join(cwd, name), 'utf8'); }
 function setup(cwd, ...args) {
-  const result = spawnSync(process.execPath, [path.join(root, 'bin/setup.js'), '--yes', '--skip-external', ...args], { cwd, encoding: 'utf8', timeout: 15000, env: { ...process.env, DRUPAL_CONTRIB_LOCAL: path.join(cwd, '.no-local.json') } });
+  const result = spawnSync(process.execPath, [src('bin/setup.js'), '--yes', '--skip-external', ...args], { cwd, encoding: 'utf8', timeout: 15000, env: { ...process.env, DRUPAL_CONTRIB_LOCAL: path.join(cwd, '.no-local.json') } });
   assert.equal(result.status, 0, result.stderr + result.stdout);
   return result.stdout;
 }
@@ -62,7 +62,7 @@ for (const target of ['claude-code', 'codex', 'both']) {
 
 test('dry run changes nothing and does not download external skills', t => {
   const cwd = workspace(t);
-  const result = spawnSync(process.execPath, [path.join(root, 'bin/setup.js'), '--target', 'both', '--dry-run'], { cwd, encoding: 'utf8' });
+  const result = spawnSync(process.execPath, [src('bin/setup.js'), '--target', 'both', '--dry-run'], { cwd, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(fs.readdirSync(cwd), []);
   assert.match(result.stdout, /Preview only/);
@@ -213,7 +213,7 @@ test('updates owned files but preserves user edits, custom skills, and linked pa
 
 test('Codex agent generation preserves complete procedures and escapes TOML', t => {
   const cwd = workspace(t);
-  const body = fs.readFileSync(path.join(root, 'agents/drupal-issue-agent.md'), 'utf8');
+  const body = fs.readFileSync(src('agents/drupal-issue-agent.md'), 'utf8');
   put(cwd, 'agent.toml', agentToml(body));
   const parsed = spawnSync('python3', ['-c', 'import tomllib,json; print(json.dumps(tomllib.load(open("agent.toml","rb"))))'], { cwd, encoding: 'utf8' });
   assert.equal(parsed.status, 0, parsed.stderr);
@@ -225,7 +225,7 @@ test('Codex agent generation preserves complete procedures and escapes TOML', t 
 
 test('invalid CLI targets fail before writing', t => {
   const cwd = workspace(t);
-  const result = spawnSync(process.execPath, [path.join(root, 'bin/setup.js'), '--target', 'unknown'], { cwd, encoding: 'utf8' });
+  const result = spawnSync(process.execPath, [src('bin/setup.js'), '--target', 'unknown'], { cwd, encoding: 'utf8' });
   assert.notEqual(result.status, 0);
   assert.deepEqual(fs.readdirSync(cwd), []);
 });
