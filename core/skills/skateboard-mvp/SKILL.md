@@ -12,6 +12,16 @@ Plan the way Henrik Kniberg describes in "Making sense of MVP" (https://blog.cri
 
 The car is a metaphor. The point is to start from the user's need and get something usable in front of them as early as possible.
 
+## Step 0: Check what already exists
+
+Before planning anything new, spend a few minutes looking for prior work:
+
+- **Code:** does the codebase, a library or a package already do this, or most of it?
+- **Open work:** open issues, pull/merge requests, branches or abandoned attempts on the same problem. Read why earlier attempts stalled.
+- **Decisions:** has a maintainer already accepted or rejected an approach?
+
+Write what you found in 1-3 lines, even if it's "nothing found". If something covers most of the need, the skateboard is "extend or finish that", not "build new". If an approach was rejected, don't plan it again without saying what changed.
+
 ## Step 1: Find the need (A to B)
 
 Before slicing anything, write down:
@@ -19,28 +29,28 @@ Before slicing anything, write down:
 - **Who** has the problem? Name a real person or group, not "users".
 - **What** are they trying to do? Describe the outcome, not the feature they asked for. "Wants a car" usually means "needs to get from A to B".
 - **How** do they cope today? The current workaround is the bar the skateboard has to clear.
-- **How much is it worth?** Set the appetite: the time this problem deserves before you see feedback, such as "three days" or "two weeks". Shape the skateboard to fit the appetite. Don't estimate it afterwards.
+- **How much is it worth?** Set the appetite: the time this problem deserves before you see feedback, such as "3 days" or "2 weeks". Shape the skateboard to fit the appetite. Don't estimate it afterwards.
 
-If any of these is unclear and a wrong guess would change the plan, ask at most three short questions first. Otherwise state your assumption in one line and carry on.
+If any of these is unclear and a wrong guess would change the plan, ask at most 3 short questions first. Otherwise state your assumption in 1 line and carry on.
 
 ## Step 2: Name the riskiest assumptions
 
-List the two to four assumptions that would sink the idea if they were wrong. For example: people want this at all, the data or API exists, it performs well enough, maintainers will accept the approach, people will configure it. The early slices should test these first.
+List the 2 to 4 assumptions that would sink the idea if they were wrong. For example: people want this at all, the data or API exists, it performs well enough, maintainers will accept the approach, people will configure it. The early slices should test these first.
 
-Then ask: **can we test the riskiest one without building anything?** A conversation with five target users, a fake "coming soon" button that counts clicks, doing the job by hand for one client (concierge), or faking the automation behind a real-looking front end (Wizard of Oz) is often faster and cheaper than any code. If one of these would answer the question, make it the skateboard, or put it before the skateboard as a "before we build" step.
+Then ask: **can we test the riskiest one without building anything?** A conversation with 5 target users, a fake "coming soon" button that counts clicks, doing the job by hand for one client (concierge), or faking the automation behind a real-looking front end (Wizard of Oz) is often faster and cheaper than any code. If one of these would answer the question, make it the skateboard, or put it before the skateboard as a "before we build" step.
 
 ## Step 3: Slice into releases
 
-Use Kniberg's three stages. Stop at whatever stage makes sense, and don't plan past the first two in detail.
+Use Kniberg's 3 stages. Stop at whatever stage makes sense, and don't plan past the first 2 in detail.
 
 1. **Earliest Testable Product (skateboard):** the smallest end-to-end thing a real person can try, built so you can learn. It can be rough, manual, hard-coded, behind a flag, or run on one site. It doesn't have to be code: a config recipe, a prototype, a script, or a patch shown to one maintainer can count. It should take days to build, not weeks. Keep it **narrow but complete**: it fully does one small job for one group of people, rather than half doing the big job for everyone. A skateboard gets you there. Half a car doesn't.
 2. **Earliest Usable Product (bicycle):** the first version that early adopters will choose to use without being pushed.
 3. **Earliest Lovable Product (motorcycle):** the version people like, recommend, or would pay for.
-4. **Later (car, maybe):** one or two lines at most. Say plainly that feedback from the earlier slices will reshape it.
+4. **Later (car, maybe):** 1 or 2 lines at most. Say plainly that feedback from the earlier slices will reshape it.
 
 For each slice, give:
 
-- **What a user can do:** one or two sentences, from the user's point of view.
+- **What a user can do:** 1 or 2 sentences, from the user's point of view.
 - **In / out:** what's included and, just as important, what's deliberately left out.
 - **What we learn:** which assumption from Step 2 it tests.
 - **Feedback from whom, and how:** name the people or channel, such as a teammate, one client site, an issue queue, a meetup demo, or an alpha release.
@@ -57,7 +67,7 @@ Rewrite the plan if any of these are true:
 - **The first slice is incomplete for its job.** If the person still has to fall back on today's workaround to finish the task, narrow the job until the slice covers it fully.
 - **The first slice doesn't fit the appetite.** Cut scope, or narrow the audience, until it does. Don't stretch the time.
 - **Code is planned where a cheaper test would do.** If a conversation, fake door or manual run could answer the riskiest assumption, do that first.
-- **Polish comes before feedback**, for example settings UIs, theming, edge cases, full test coverage, or docs sites in slice 1. (A test or two that proves slice 1 works is fine.)
+- **Polish comes before feedback**, for example settings UIs, theming, edge cases, full test coverage, or docs sites in slice 1. (A test that proves slice 1 works is fine.)
 - **A slice doesn't test anything.** If there's nothing to learn from it, merge it into another slice or drop it.
 - **Later slices are planned in more detail than the first.** Detail should go down as slices go out.
 
@@ -65,11 +75,31 @@ Rewrite the plan if any of these are true:
 
 Turn the skateboard alone into concrete tasks, in build order. Data model, service, API and UI work all appear here, inside the slice. Leave the later slices at the level of Step 3, because what you learn from the skateboard will change them.
 
+## Hand-off: slices as tickets
+
+When the user wants the slices tracked (issues, tickets, a parent with children), turn each slice into 1 ticket. Keep it tool-neutral; a project skill can map it to its tracker's format.
+
+```
+### <Slice name>
+Scope: what a user can do when this is done (from "User can")
+Out: what this ticket deliberately doesn't do
+Done when: the move-on signal, as something a reviewer can check
+Blocked by: <earlier ticket names, or "none">
+Tests assumption: #N
+```
+
+- 1 ticket per slice. Only the first slice gets task-level detail; later tickets stay at slice level.
+- "Blocked by" follows build order. Avoid chains where every ticket blocks the next; parallel work is fine when slices don't depend on each other.
+- Show the ticket list and get the user's OK before anything is created in a tracker. Never create or post tickets yourself.
+
 ## Output format
 
 Unless the user asks for something else, use this shape:
 
 ```
+## What exists
+<code, open issues/MRs, earlier attempts, decisions> (1-3 lines)
+
 ## Need
 Who / what outcome / today's workaround (2-4 lines)
 Appetite: <time budget before first feedback>
@@ -102,8 +132,8 @@ Keep: ... | Throw away: ...
 - [ ] ...
 ```
 
-Keep it tight. A plan someone can scan in two minutes is better than an exhaustive one.
+Keep it tight. A plan someone can scan in 2 minutes is better than an exhaustive one.
 
 ## When the user wants a different approach
 
-If the user explicitly wants a component-first or big-bang plan (a fixed-scope contract, a migration that has to switch over all at once, a spec that's already been decided), follow their request. Say in one line where an early usable slice could still lower the risk, then move on.
+If the user explicitly wants a component-first or big-bang plan (a fixed-scope contract, a migration that has to switch over all at once, a spec that's already been decided), follow their request. Say in 1 line where an early usable slice could still lower the risk, then move on.
