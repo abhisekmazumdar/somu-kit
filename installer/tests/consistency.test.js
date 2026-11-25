@@ -61,3 +61,9 @@ test('PHPUnit guidance prefers attributes everywhere', () => {
   assert.match(standards, /New tests use attributes/);
   assert.match(standards, /Never remove the docblocks there/);
 });
+
+test("core queue defers to core's AGENTS.md and falls back to a fact sheet", () => {
+  const w = read('skills/drupalorg-writing/SKILL.md');
+  assert.match(w, /## Drupal core issues: core's AGENTS\.md wins/);
+  assert.match(w, /fact sheet/);
+});

@@ -18,6 +18,7 @@ never posts: it writes a draft the human reads, edits and posts.
 | New issue or issue summary | HTML (classic) or Markdown (migrated) | `references/issue-summary.md` |
 | MR description | GitLab Markdown | The project's MR template; `drupal-gitlab` opens the MR |
 | MR inline reply | GitLab Markdown | 1 point per reply, 1-3 sentences |
+| Anything in the Drupal core queue | Whatever core's `AGENTS.md` allows | See "Drupal core issues" below |
 
 Every row ends with the AI disclosure and follows the voice rules.
 
@@ -25,6 +26,24 @@ Every row ends with the AI disclosure and follows the voice rules.
 says "Migrated from Drupal.org". Migrated queues and all MRs use GitLab
 Markdown: fenced code blocks, `**bold**`, `- ` lists, `## ` headings, `>`
 quotes, `#NID` for issues and `!NID` for MRs.
+
+## Drupal core issues: core's AGENTS.md wins
+
+Drupal core ships its own `core/AGENTS.md` (a trial since mid 2026; a
+pending MR may move it to the repo root) with rules for AI-assisted
+contributions. For any issue in the core queue (project `drupal`), read it
+from the core checkout (`core/AGENTS.md`, else `AGENTS.md`) before drafting,
+and follow it over this skill.
+
+- If it says not to use an LLM to write drupal.org comments, issues or MR
+  text: don't draft prose. Save a **fact sheet** to the drafts folder
+  instead: findings, commands run and their output, `file:line` references,
+  the verdict and links. The human writes the post from it.
+- If it requires a fixed disclosure line, a word limit or other wording, use
+  those instead of the ones below.
+- If you can't find or read it, say so and produce the fact sheet.
+
+Contrib queues follow this skill as written.
 
 ## AI disclosure — every issue, MR, and comment
 
