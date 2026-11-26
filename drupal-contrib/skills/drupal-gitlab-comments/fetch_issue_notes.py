@@ -13,27 +13,42 @@ Accepted inputs:
     - Shorthand ref:   project/<name>#<nid>          (e.g. project/ai#3577170)
 
 Auth:
-    Uses `glab` if installed and logged in to git.drupalcode.org.
-    Falls back to GITLAB_TOKEN env var or anonymous access for public projects.
+    Calls `glab api`, so it uses your `glab auth login -h git.drupalcode.org`
+    (or GITLAB_TOKEN). Issue notes need auth even on public projects.
 
 Output: chronological list of non-system notes. System notes (assignments,
 label changes, status updates) are filtered out.
 """
 
 import json
-import os
 import re
 import subprocess
 import sys
-import urllib.error
-import urllib.request
 
-BASE = "https://git.drupalcode.org"
+HOST = "git.drupalcode.org"
 
 
 def die(msg):
     print(f"ERROR: {msg}", file=sys.stderr)
     sys.exit(1)
+
+
+def fetch(endpoint):
+    """GET an API endpoint through `glab api`, which owns auth (keyring,
+    OAuth refresh, GITLAB_TOKEN). Same pattern as drupal-gitlab/create_mr.py."""
+    cmd = ["glab", "api", "--hostname", HOST, endpoint]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+    except FileNotFoundError:
+        die("glab not found: install it and run `glab auth login -h git.drupalcode.org`.")
+    if result.returncode != 0:
+        err = (result.stderr or result.stdout).strip()
+        if "401" in err:
+            die("401 Unauthorized: run `glab auth login -h git.drupalcode.org`.")
+        if "404" in err:
+            die(f"404 Not Found: check the project name and ID ({endpoint}).")
+        die(f"glab api {endpoint} failed: {err[:300]}")
+    return json.loads(result.stdout)
 
 
 def parse_input(arg):
@@ -58,55 +73,11 @@ def parse_input(arg):
         )
     return m.group(1).replace("/", "%2F"), m.group(2)
 
-
-def get_token():
-    """Prefer GITLAB_TOKEN env, then glab CLI config. Empty for anonymous."""
-    token = os.environ.get("GITLAB_TOKEN", "")
-    if token:
-        return token
-
-    try:
-        result = subprocess.run(
-            ["glab", "auth", "status", "--hostname", "git.drupalcode.org", "-t"],
-            capture_output=True,
-            text=True,
-        )
-        # Line format: "  ✓ Token found: <value>" (or older "Token: <value>").
-        output = (result.stdout or "") + (result.stderr or "")
-        match = re.search(r"Token(?:\s+found)?:\s*(\S+)", output)
-        if match:
-            value = match.group(1).strip()
-            if value and value not in ("<no value>", "no value"):
-                return value
-    except FileNotFoundError:
-        pass
-
-    return ""
-
-
-def fetch(url):
-    token = get_token()
-    req = urllib.request.Request(url)
-    if token:
-        req.add_header("PRIVATE-TOKEN", token)
-    try:
-        with urllib.request.urlopen(req) as resp:
-            return json.loads(resp.read())
-    except urllib.error.HTTPError as e:
-        body = e.read().decode(errors="replace")
-        if e.code == 401:
-            die("401 Unauthorized — run `glab auth login -h git.drupalcode.org` or set GITLAB_TOKEN.")
-        if e.code == 404:
-            die(f"404 Not Found — check the project name and issue/work-item ID: {url}")
-        die(f"HTTP {e.code} from GitLab API: {body[:300]}")
-
-
 def fetch_all_notes(project, iid):
     notes = []
     page = 1
     while True:
-        url = f"{BASE}/api/v4/projects/{project}/issues/{iid}/notes?per_page=100&page={page}&sort=asc"
-        batch = fetch(url)
+        batch = fetch(f"projects/{project}/issues/{iid}/notes?per_page=100&page={page}&sort=asc")
         if not isinstance(batch, list):
             die(f"Unexpected response: {batch}")
         notes.extend(batch)

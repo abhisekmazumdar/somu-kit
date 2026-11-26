@@ -9,21 +9,17 @@ Usage:
 Example:
     python3 fetch.py https://git.drupalcode.org/project/ai/-/merge_requests/899
 
-Token:
-    Set GITLAB_TOKEN env var for private projects. Public projects work without it.
+Auth:
+    Calls `glab api`, so it uses your `glab auth login -h git.drupalcode.org`
+    (or GITLAB_TOKEN).
 """
 
 import json
-import os
 import re
 import subprocess
 import sys
-import urllib.request
-import urllib.error
 
-BASE = "https://git.drupalcode.org"
-KEYCHAIN_SERVICE = "drupalorg-gitlab"
-KEYCHAIN_ACCOUNT = "gitlab-token"
+HOST = "git.drupalcode.org"
 
 
 def die(msg):
@@ -31,56 +27,22 @@ def die(msg):
     sys.exit(1)
 
 
-def get_token():
-    """Return the GitLab token.
-
-    Resolution order:
-    1. GITLAB_TOKEN environment variable (explicit override)
-    2. `glab` CLI config (recommended — run `glab auth login -h git.drupalcode.org` once)
-    3. macOS Keychain (service=drupalorg-gitlab, account=gitlab-token) — legacy
-    4. Empty string — works for public Drupal.org projects
-    """
-    token = os.environ.get("GITLAB_TOKEN", "")
-    if token:
-        return token
-
-    # Try glab CLI config (works cross-platform).
+def fetch(endpoint):
+    """GET an API endpoint through `glab api`, which owns auth (keyring,
+    OAuth refresh, GITLAB_TOKEN). Same pattern as drupal-gitlab/create_mr.py."""
+    cmd = ["glab", "api", "--hostname", HOST, endpoint]
     try:
-        result = subprocess.run(
-            ["glab", "auth", "status", "--hostname", "git.drupalcode.org", "-t"],
-            capture_output=True,
-            text=True,
-        )
-        # `glab auth status -t` writes to stderr; line looks like
-        #   "  ✓ Token found: <value>" or (older glab) "  ✓ Token: <value>".
-        output = (result.stdout or "") + (result.stderr or "")
-        match = re.search(r"Token(?:\s+found)?:\s*(\S+)", output)
-        if match:
-            value = match.group(1).strip()
-            if value and value not in ("<no value>", "no value"):
-                return value
+        result = subprocess.run(cmd, capture_output=True, text=True)
     except FileNotFoundError:
-        pass  # glab not installed
-
-    if sys.platform == "darwin":
-        try:
-            result = subprocess.run(
-                [
-                    "security",
-                    "find-generic-password",
-                    "-s", KEYCHAIN_SERVICE,
-                    "-a", KEYCHAIN_ACCOUNT,
-                    "-w",
-                ],
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode == 0:
-                return result.stdout.strip()
-        except FileNotFoundError:
-            pass  # security binary not found — unlikely on macOS
-
-    return ""
+        die("glab not found: install it and run `glab auth login -h git.drupalcode.org`.")
+    if result.returncode != 0:
+        err = (result.stderr or result.stdout).strip()
+        if "401" in err:
+            die("401 Unauthorized: run `glab auth login -h git.drupalcode.org`.")
+        if "404" in err:
+            die(f"404 Not Found: check the project name and ID ({endpoint}).")
+        die(f"glab api {endpoint} failed: {err[:300]}")
+    return json.loads(result.stdout)
 
 
 def parse_url(url):
@@ -94,29 +56,12 @@ def parse_url(url):
     mr_iid = m.group(2)
     return project_encoded, mr_iid
 
-
-def fetch(url):
-    token = get_token()
-    req = urllib.request.Request(url)
-    if token:
-        req.add_header("PRIVATE-TOKEN", token)
-    try:
-        with urllib.request.urlopen(req) as resp:
-            return json.loads(resp.read())
-    except urllib.error.HTTPError as e:
-        body = e.read().decode(errors="replace")
-        if e.code == 401:
-            die("401 Unauthorized — set GITLAB_TOKEN env var with a valid personal access token.")
-        die(f"HTTP {e.code} from GitLab API: {body[:300]}")
-
-
 def fetch_all_discussions(project, mr_iid):
     """Fetch all discussion pages and return combined list."""
     discussions = []
     page = 1
     while True:
-        url = f"{BASE}/api/v4/projects/{project}/merge_requests/{mr_iid}/discussions?per_page=100&page={page}"
-        batch = fetch(url)
+        batch = fetch(f"projects/{project}/merge_requests/{mr_iid}/discussions?per_page=100&page={page}")
         if not isinstance(batch, list):
             die(f"Unexpected response from API: {batch}")
         discussions.extend(batch)

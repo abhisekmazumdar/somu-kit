@@ -13,8 +13,8 @@ Two scripts live here; pick by what the URL points at:
 | `…/-/merge_requests/<iid>` | `fetch.py` | `/discussions` | Inline diff threads (grouped by file/line, open vs resolved) plus general MR comments |
 | `…/-/work_items/<iid>` or `…/-/issues/<iid>` | `fetch_issue_notes.py` | `/notes` | Chronological top-level comments on a migrated issue queue |
 
-Both share the same auth resolution (env → glab → keychain → anonymous) and use the
-GitLab REST API directly so the output is stable and parseable.
+Both call the GitLab REST API through `glab api`, so the output is stable and
+parseable and glab handles auth.
 
 ---
 
@@ -47,11 +47,11 @@ Output is sorted oldest → newest so the conversation reads naturally.
 
 ## Authentication
 
-Both scripts read credentials in this order: `GITLAB_TOKEN` env → `glab` CLI
-config → macOS Keychain (legacy) → anonymous (public projects only).
+Both scripts run `glab api`, so they use whatever `glab` uses: its keyring or
+config login, or `GITLAB_TOKEN`. Issue notes need a login even on public
+projects.
 
-One-time setup: `glab auth login --hostname git.drupalcode.org` — after that
-both scripts pick up the token automatically. For full installation and
+One-time setup: `glab auth login --hostname git.drupalcode.org`. For full installation and
 authentication details, see the **`drupal-gitlab`** skill.
 
 ---
