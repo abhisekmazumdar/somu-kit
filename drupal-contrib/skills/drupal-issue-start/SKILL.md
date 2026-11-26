@@ -38,12 +38,7 @@ Extract `nid` and `project` from the URL:
 | `https://git.drupalcode.org/project/<name>/-/work_items/<nid>` | trailing number | `<name>` | set `is_migrated=true` |
 | `https://git.drupalcode.org/security/<sec-nid>-<slug>/-/work_items/<iid>` (or `/-/issues/<iid>`) | `security-<sec-nid>-<iid>` | from the issue (Phase 2) | set `is_security=true`, `<security_repo>` = `security/<sec-nid>-<slug>` |
 
-For a security issue, `<nid>` is the record key `security-<sec-nid>-<iid>`: item
-numbers restart at 1 in every security repo, so the bare `<iid>` would collide.
-Use it for `issues/<nid>/` and nowhere else — never as a drupal.org nid, an
-issue-fork name, or a branch name. `<project>` is the module's machine name;
-take it from the issue or repo description in Phase 2, and ask if it isn't
-stated.
+For a security issue, read `<skills-root>/drupal-issue-start/references/security-issues.md` now. It changes Phases 0, 2, 2.5 and 4.
 
 If the URL cannot be parsed, ask the user for the issue number and project name separately.
 
@@ -119,17 +114,7 @@ Phase 4 report and correct the local one in Phase 3.
 
 ## Phase 2 — Fetch live issue context
 
-For **security** issues (`is_security=true`), run only these — no `drupalorg`
-commands, no issue-fork or `project/` lookups:
-```bash
-GITLAB_HOST=git.drupalcode.org glab issue view <iid> --repo <security_repo>
-python3 "<skills-root>/drupal-gitlab-inline-comments/fetch_issue_notes.py" <security_repo>#<iid>
-GITLAB_HOST=git.drupalcode.org glab mr list --repo <security_repo>
-GITLAB_HOST=git.drupalcode.org glab ci status -b <branch> -R <security_repo>   # per open MR
-```
-Keep only the MRs that reference this issue (`#<iid>` or its title). A 403/404
-on `glab issue view` means no access: stop and tell the human, naming
-`<security_repo>`. Then continue with the backlink scan below.
+For **security** issues, fetch with the commands in the security reference only.
 
 Run all applicable commands. For **non-migrated** issues:
 ```bash
@@ -192,11 +177,8 @@ judgment call (RTBC-ready / close, with the specific gap / needs work, with
 the specific gap / needs discussion), not an open-ended checklist. Cosmetic
 observations get mentioned once, not treated as blockers.
 
-**Security issues (`is_security=true`): skip the recon checkout entirely** — no
-`drupal-repo-setup` call. Review the picked MR from its diff instead
-(`GITLAB_HOST=git.drupalcode.org glab mr diff <mr-iid> --repo <security_repo>`), or
-skip to the "no review" case if it has none. The checkout happens on go, inside
-`drupal-issue-agent` (its "Security issues" section).
+**Security issues (`is_security=true`): skip the recon checkout entirely** and
+review from the MR diff, as the security reference says.
 
 **If zero open MRs exist:** nothing to check out or review. Invoke
 `drupal-repo-setup` in `recon` mode with no `<branch>` (clone-only, to confirm
@@ -570,11 +552,8 @@ make. Example for an existing MR:>
 preflight, push, open the MR (ready, not draft). For **Needs discussion** or
 **Do not touch**: review and draft only, no code — say so here.>
 
-<For a **security issue**: replace the fork/push/`glab` checklist lines with
-"<✅|❌> Read access to `<security_repo>`" and "<✅|❌> Module checkout at
-`<webroot>/modules/contrib/<project>`", and end the list at "Commit locally on
-`security-<iid>` — not pushed; you move it to `<security_repo>`". Never list a
-push or an MR.>
+<For a **security issue**: use the checklist from the security reference. Never
+list a push or an MR.>
 
 Nothing gets posted in your name — comments, labels, status changes, and
 approvals stay with you. You review the code in the MR on GitLab.

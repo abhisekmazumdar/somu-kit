@@ -110,26 +110,15 @@ Never assume the caller will answer for the user. Never continue past a `[PAUSE]
 
 ## Security issues (`is_security=true`)
 
-A security fix must stay private until the advisory is released. These
-override every step below that clones, adds a remote, pushes, or opens an MR:
+A security fix must stay private until the advisory is released:
 
 - **Never touch the public repos.** Don't invoke `drupal-repo-setup`; don't
   clone, fetch, add a remote for, or push to `issue/<project>-*` or
   `project/<project>`. Don't run `create_mr.py` or `glab mr create`.
-- **Checkout (A2/B4):** work in the module's existing checkout at
-  `<webroot>/modules/contrib/<project>`. If it's missing or has uncommitted
-  changes, `[PAUSE]` and ask — don't clone it. For Path A, add `<security_repo>`
-  as a remote named `security` (`git@git.drupal.org:<security_repo>.git`),
-  fetch the MR branch, and check it out as `security-<iid>`. For Path B, branch
-  `security-<iid>` from the default branch.
-- **Never push** (A10 step 7, B5): run the preflight, commit locally, and stop.
-  The final report gives the branch, the commit, and the push command for the
-  human to run themselves.
-- **Drafts:** start every file in `issues/<nid>/drafts/` with
-  `<!-- PRIVATE: security issue — post only in <security_repo> -->`.
-- **The rest is unchanged:** review, fix list, preflight, record update. The
-  issue record and the work-log `--did` text describe the work, never the
-  vulnerability.
+- **Never push.** The run ends at a local commit.
+- Before A2/B4, read
+  `.drupal-contrib/agents/drupal-issue-agent/references/security-issues.md`
+  for the checkout, the stop, and the draft marker.
 
 ## Phase 0 — Receive context from drupal-issue-start
 
