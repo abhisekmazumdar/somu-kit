@@ -218,7 +218,7 @@ Re-running is non-interactive once the lockfile exists.
 
 `drupalorg-cli` 0.12.0 exposes 17 read-only tools. Verified 2026-09-10 against a live migrated issue (`ai` project, nid 3540491):
 
-- **Works:** `gitlab_issue_show` (full GitLab work-item URL, bypasses nid→project lookup) — title, description, state, labels, timestamps. No comments; `fetch_issue_notes.py` (`drupal-gitlab-comments`) still needed for those.
+- **Works:** `gitlab_issue_show` (full GitLab work-item URL, bypasses nid→project lookup) — title, description, state, labels, timestamps. No comments; `glab issue view --comments` reads those.
 - `issue_show`'s new `withComments` param (0.12.0) returns full comment bodies, but only for **non-migrated** issues — its `nid` param is still a bare `^\d+$` pattern, no project prefix, so it still errors on a migrated nid.
 - **Still broken for migrated issues:** `mr_list`, `mr_status`, `mr_files`, `issue_get_fork` all error (`-32603`) on a migrated nid. The underlying CLI *commands* were fixed in 0.11.0 (resolve correctly given `<project>#<nid>`), but the MCP tool schemas were never updated to expose a project-prefix field — any MCP tool that resolves project from `nid` alone inherits this gap. `drupal-issue-start`'s `glab mr list --search` Bash fallback (Phase 2) is still the only working path for MR discovery on migrated issues — don't replace it with an MCP call until the schemas gain a project-prefix param (tracked at [mglaman/drupalorg-cli](https://github.com/mglaman/drupalorg-cli); re-check `tools/list` after future releases).
 - Not yet verified against a non-migrated issue — assume nid-based tools work there, since the bug is migrated-nid-specific.

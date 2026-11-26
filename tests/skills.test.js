@@ -14,7 +14,7 @@ const repo = path.join(__dirname, '..');
 const LAYERS = ['core', 'drupal', 'drupal-contrib']; // a layer may use only layers before it
 
 // Names we renamed or removed. They must not come back.
-const RETIRED = ['drupalorg-comment-format', 'drupal-gitlab-inline-comments', 'drupal-automated-testing'];
+const RETIRED = ['drupalorg-comment-format', 'drupal-gitlab-inline-comments', 'drupal-automated-testing', 'drupal-gitlab-comments'];
 
 const read = rel => fs.readFileSync(path.join(repo, rel), 'utf8');
 const exists = rel => fs.existsSync(path.join(repo, rel));

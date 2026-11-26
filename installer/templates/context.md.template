@@ -166,12 +166,11 @@ Three URL forms are valid inputs to the agent:
 **Detection:** if `drupalorg issue:show <nid>` returns an empty `<issue_id>` and `<title>`, the project has migrated its issue queue to GitLab. Fetch issue body and comments from GitLab instead:
 
 ```bash
-# Issue body
-GITLAB_HOST=git.drupalcode.org glab issue view <nid> --repo project/<name>
+# Issue body and all comments (system notes hidden; add -s to show them)
+GITLAB_HOST=git.drupalcode.org glab issue view <nid> --repo project/<name> --comments
 
-# All comments (chronological, system notes filtered): fetch_issue_notes.py
-# from the drupal-gitlab-comments skill, with the path that skill gives
-python3 <drupal-gitlab-comments>/fetch_issue_notes.py project/<name>#<nid>
+# MR comments: inline threads with file:line, and top-level comments
+GITLAB_HOST=git.drupalcode.org glab mr view <mr-iid> --repo project/<name> --comments
 ```
 
 `drupalorg mr:list`, `mr:diff`, `mr:status`, and `mr:logs` **still work** for both migrated and non-migrated projects — only the issue body/comments differ.
@@ -207,7 +206,6 @@ Skills live under `<skills-root>`, or in the `drupal` and `drupal-contrib` plugi
 
 ### Other key skills
 - `drupal-issue-reroll` — rebase a branch on latest upstream, run checks, force-push
-- `drupal-gitlab-comments` — fetch MR inline threads and issue notes
 - `drupal-coding-standards` — PHPCS/PHPCBF via ddev with automatic module config detection
 - `drupalorg-cli` — reference stub; run `drupalorg skill:get drupalorg-cli` before using any `drupalorg` command; pulled from `mglaman/drupalorg-cli` at setup time (not part of this package — update with `npx skills update`)
 - `ddev-expert` — ddev environment management, troubleshooting, container commands

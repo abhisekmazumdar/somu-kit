@@ -11,7 +11,6 @@ description: >
 tools: Read, Glob, Grep, Write, Edit, Bash, TodoWrite, WebFetch
 skills:
   - drupalorg-cli
-  - drupal-gitlab-comments
   - drupal-related-issues
   - issue-record-update
 ---
@@ -88,9 +87,9 @@ decision (Step 5) genuinely needs pre-archive context — don't read it by defau
 Fetch everything that has happened since the last session.
 
 **Security issues:** replace a)–c) with the `<security_repo>` commands in
-`drupal-issue-start` Phase 2 (`glab issue view`, `fetch_issue_notes.py
-<security_repo>#<iid>`, `glab mr list`, `glab ci status -R <security_repo>`),
-plus `glab mr note list <mr-iid> --repo <security_repo>`. Never look up
+`drupal-issue-start` Phase 2 (`glab issue view --comments`, `glab mr list`, `glab ci status -R
+<security_repo>`), plus `glab mr view <mr-iid> --repo <security_repo>
+--comments`. Never look up
 `issue/` or `project/` repos for them.
 
 **a) Issue comments**
@@ -102,20 +101,13 @@ drupalorg issue:show <nid> --with-comments --format=llm
 
 For migrated (GitLab work items):
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab-comments/fetch_issue_notes.py \
-  project/<project>#<nid>
+GITLAB_HOST=git.drupalcode.org glab issue view <nid> --repo project/<project> --comments
 ```
 
-**b) Inline MR reviewer threads** (if an MR exists):
+**b) MR comments** (if an MR exists): inline threads (with file:line and
+resolved state) and top-level comments. Add `--unresolved` for open threads only.
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab-comments/fetch.py \
-  https://git.drupalcode.org/project/<project>/-/merge_requests/<mr-iid>
-```
-
-Also fetch top-level MR comments:
-```bash
-GITLAB_HOST=git.drupalcode.org glab mr note list <mr-iid> \
-  --repo project/<project>
+GITLAB_HOST=git.drupalcode.org glab mr view <mr-iid> --repo project/<project> --comments
 ```
 
 **c) MR and pipeline status** (if an MR exists). Standard contrib MRs run

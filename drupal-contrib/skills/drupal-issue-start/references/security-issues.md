@@ -18,8 +18,7 @@ the issue or repo description in Phase 2, and ask if it isn't stated.
 Run only these. No `drupalorg` commands, no issue-fork or `project/` lookups:
 
 ```bash
-GITLAB_HOST=git.drupalcode.org glab issue view <iid> --repo <security_repo>
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab-comments/fetch_issue_notes.py <security_repo>#<iid>
+GITLAB_HOST=git.drupalcode.org glab issue view <iid> --repo <security_repo> --comments
 GITLAB_HOST=git.drupalcode.org glab mr list --repo <security_repo>
 GITLAB_HOST=git.drupalcode.org glab ci status -b <branch> -R <security_repo>   # per open MR
 ```

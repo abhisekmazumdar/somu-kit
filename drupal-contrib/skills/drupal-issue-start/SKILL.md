@@ -124,8 +124,7 @@ drupalorg issue:get-fork <nid> --format=llm
 
 For **migrated** issues (`is_migrated=true`):
 ```bash
-GITLAB_HOST=git.drupalcode.org glab issue view <nid> --repo project/<project>
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab-comments/fetch_issue_notes.py project/<project>#<nid>
+GITLAB_HOST=git.drupalcode.org glab issue view <nid> --repo project/<project> --comments
 drupalorg mr:list <nid> --format=llm
 drupalorg issue:get-fork <nid> --format=llm
 ```
@@ -218,9 +217,7 @@ GITLAB_HOST=git.drupalcode.org glab auth status
 
 **Now fetch the full inline reviewer threads — for this one picked MR only:**
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab-comments/fetch.py \
-  https://git.drupalcode.org/project/<project>/-/merge_requests/<picked-mr-iid>
-GITLAB_HOST=git.drupalcode.org glab mr note list <picked-mr-iid> --repo project/<project>
+GITLAB_HOST=git.drupalcode.org glab mr view <picked-mr-iid> --repo project/<project> --comments
 ```
 This is the expensive fetch (full comment bodies per thread) that Phase 2
 deliberately skipped for every MR — doing it here, once, for only the MR

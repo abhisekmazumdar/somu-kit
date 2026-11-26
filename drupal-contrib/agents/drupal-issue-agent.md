@@ -10,7 +10,6 @@ skills:
   - issue-record-update
   - drupalorg-cli
   - drupal-gitlab
-  - drupal-gitlab-comments
   - drupal-phpunit
   - drupal-coding-standards
   - drupalorg-writing
@@ -196,13 +195,9 @@ GITLAB_HOST=git.drupalcode.org glab ci status \
 GITLAB_HOST=git.drupalcode.org glab ci status \
   -b <branch> -R project/<project>
 
-# Inline reviewer threads — diff-level comments on the MR
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab-comments/fetch.py \
-  https://git.drupalcode.org/project/<project>/-/merge_requests/<mr-iid>
-
-# Top-level MR comments (not tied to a diff line)
-GITLAB_HOST=git.drupalcode.org glab mr note list <mr-iid> \
-  --repo project/<project>
+# MR comments: inline threads (file:line, resolved state) and top-level
+# comments. Add --unresolved for open threads only.
+GITLAB_HOST=git.drupalcode.org glab mr view <mr-iid> --repo project/<project> --comments
 ```
 
 If the pipeline is failing, stream the failing job log:
@@ -309,7 +304,7 @@ If the module has no `phpstan.neon`, skip PHPStan locally — CI will catch it.
 ### A6. Timeline cross-reference
 
 Merge the issue comment timestamps (from `--with-comments`) with the inline thread
-timestamps (from `fetch.py`). Sort chronologically and look for:
+timestamps (from `glab mr view --comments`). Sort chronologically and look for:
 
 | Pattern | Label | Meaning |
 |---------|-------|---------|
@@ -627,7 +622,7 @@ No MR exists yet. Read and understand the issue fully, write the plan to
 ### B1. Understand the issue
 
 From the issue comments gathered in Phase 0 and Phase 1, either the
-`--with-comments` output (Drupal.org queue) or the `fetch_issue_notes.py`
+`--with-comments` output (Drupal.org queue) or the `glab issue view --comments`
 output (migrated GitLab queue) — extract:
 - **Problem description** — what is broken or missing
 - **Proposed resolution** — if the issue summary has one

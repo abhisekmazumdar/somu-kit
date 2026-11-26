@@ -1,7 +1,7 @@
 ---
 name: drupal-gitlab
 description: >
-  Invoke for any task involving Drupal's GitLab instance at git.drupalcode.org: checking CI pipeline status on an MR, pushing branches to an issue fork, creating cross-project merge requests, listing or updating work items, squashing commits before merge, or navigating Drupal's issue-fork contribution workflow. This is the skill for Drupal contributor tasks — not generic GitLab.com or GitHub workflows.
+  Invoke for any task involving Drupal's GitLab instance at git.drupalcode.org: checking CI pipeline status on an MR, pushing branches to an issue fork, creating cross-project merge requests, listing or updating work items, reading issue or MR comments ("what did reviewers say", "show me the MR comments"), squashing commits before merge, or navigating Drupal's issue-fork contribution workflow. This is the skill for Drupal contributor tasks — not generic GitLab.com or GitHub workflows.
 ---
 
 # Drupal GitLab (git.drupalcode.org)
@@ -152,6 +152,25 @@ glab issue comment <id> -m "Message" -R project/<repo>
 ```
 
 ---
+
+## Reading comments
+
+Read only; these never post.
+
+```bash
+# Migrated issue: body and every comment (system notes hidden; -s shows them)
+GITLAB_HOST=git.drupalcode.org glab issue view <nid> --repo project/<project> --comments
+
+# MR: inline threads with file:line and resolved state, plus top-level comments
+GITLAB_HOST=git.drupalcode.org glab mr view <mr-iid> --repo project/<project> --comments
+# open threads only
+GITLAB_HOST=git.drupalcode.org glab mr view <mr-iid> --repo project/<project> --unresolved
+```
+
+Use `glab mr view`, not `glab mr note list`: the `mr note` family also posts,
+so it sits in the ask tier and would prompt. Classic drupal.org queue:
+`drupalorg issue:show <nid> --with-comments --format=llm`. To write a reply,
+use `drupalorg-writing`.
 
 ## Merge Requests (Cross-Project)
 
