@@ -1,16 +1,12 @@
 ---
-name: drupal-gitlab-inline-comments
+name: drupal-gitlab-comments
 description: >
-  Use this skill whenever the user wants to fetch or display review comments from git.drupalcode.org — either inline diff threads on a Merge Request, or top-level comments on a migrated-queue Issue / Work Item. Triggers when the user pastes a Drupal GitLab MR or work-item URL, says "show me the MR comments", "what are the inline comments", "pull the review comments", "fetch the issue comments", or anything about reading/displaying reviewer or commenter feedback. Always use this skill before answering any question about what reviewers or commenters said on a Drupal MR or migrated issue.
+  Read (never post) comments from git.drupalcode.org: inline diff threads on a merge request, and top-level comments on a migrated issue (work item). Use when the user pastes a Drupal GitLab MR or work-item URL and asks what reviewers or commenters said ("show me the MR comments", "pull the review comments", "fetch the issue comments"), and before answering any question about that feedback. To write a reply, use drupalorg-writing.
 ---
 
 # GitLab Comments — Drupal (git.drupalcode.org)
 
 Two scripts live here; pick by what the URL points at:
-
-Resolve scripts relative to this installed `SKILL.md`. In workflow examples,
-`<skills-root>` is the parent of this skill directory; it is supplied by the
-active client's workspace instructions.
 
 | Input | Script | Endpoint | Output |
 |---|---|---|---|
@@ -25,7 +21,7 @@ GitLab REST API directly so the output is stable and parseable.
 ## MR inline review comments
 
 ```bash
-python3 "<skills-root>/drupal-gitlab-inline-comments/fetch.py" \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab-comments/fetch.py \
   https://git.drupalcode.org/project/ai/-/merge_requests/899
 ```
 
@@ -40,7 +36,7 @@ Also accepts the shorthand `project/<name>#<nid>` (e.g. `project/ai#3577170`)
 in place of a full URL.
 
 ```bash
-python3 "<skills-root>/drupal-gitlab-inline-comments/fetch_issue_notes.py" \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab-comments/fetch_issue_notes.py \
   https://git.drupalcode.org/project/ai/-/work_items/3577170
 ```
 

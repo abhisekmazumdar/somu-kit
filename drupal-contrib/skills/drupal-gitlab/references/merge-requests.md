@@ -38,7 +38,7 @@ Also include `Closes #{issue-id}` somewhere in the description body to auto-clos
 ### Step 2 — Create the MR
 
 ```bash
-python3 <skills-root>/drupal-gitlab/create_mr.py --fork issue/<project>-<issue-id> \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab/create_mr.py --fork issue/<project>-<issue-id> \
   --target project/<repo> --source-branch {branch-name} --target-branch main \
   --title "feat: #{issue-id} Short summary" --description-file /tmp/mr_body.md
 ```

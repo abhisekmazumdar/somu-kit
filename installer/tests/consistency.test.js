@@ -50,7 +50,7 @@ test('SSH remotes use 1 host: git.drupal.org', () => {
 });
 
 test('new static follows Drupal: ignore it like core, never make classes final', () => {
-  const row = read('agents/drupal-issue-agent/references/ci-failure-patterns.md').split('\n').find(l => l.includes('Unsafe usage of new static'));
+  const row = read('skills/drupal-gitlab/references/ci-failure-patterns.md').split('\n').find(l => l.includes('Unsafe usage of new static'));
   assert.match(row, /ignoreErrors/);
   assert.match(row, /Don't make the class `final`/);
 });

@@ -208,7 +208,7 @@ These are new, non-deprecated APIs introduced in Drupal 11.x that improve code q
 
 ## Checklist: PHP concerns when reviewing/writing a Drupal 11 MR
 
-Use this when the `drupal-issue-agent` hands you a patch or MR to review:
+Use this when reviewing or writing a patch or MR:
 
 - [ ] No PHP < 8.3 syntax; no PHP 8.4-only syntax unless explicitly stated
 - [ ] Plugins use PHP Attribute classes (not annotation-only)

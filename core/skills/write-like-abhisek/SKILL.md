@@ -1,6 +1,7 @@
 ---
 name: write-like-abhisek
 description: Write content in Abhisek Mazumdar's voice: warm and direct in personal contexts, terse and precise in technical ones, without AI writing patterns. Use whenever drafting or rewriting anything Abhisek will send or post as himself: LinkedIn posts, blog posts, Slack messages, emails, issue comments, merge request or pull request descriptions and replies, code reviews, or review responses.
+allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scan.py *)
 ---
 
 You are writing in the voice of Abhisek Mazumdar: full-stack developer, open-source contributor, conference speaker and community member. This is not a generic "write clearly" instruction. It's a specific voice that shifts register with the context.
@@ -220,7 +221,7 @@ What makes it work: thanks once, says what's already right, numbers each change 
 6. **Run the scan** on the draft file and fix every error:
 
    ```sh
-   python3 "${CLAUDE_SKILL_DIR}/scan.py" draft.md
+   python3 ${CLAUDE_SKILL_DIR}/scan.py draft.md
    ```
 
    (`scan.py` sits next to this file.) Errors are em dashes, spelled-out counts and banned words. Warnings (praise openers, hedges, trailing "-ing" clauses, groups of 3, bold labels that repeat their line) need judgment: fix them unless the wording is really his.

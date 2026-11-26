@@ -19,7 +19,7 @@ Codex needs repository skills, standalone custom agents, and `PreToolUse` hooks.
 
 ## Install
 
-Run from the Drupal workspace, not this package's source directory:
+Claude Code users can load the skills and agents as plugins (`drupal@somu-kit`, `drupal-contrib@somu-kit`) and run the installer with `--plugins`; see the [repo README](../README.md#drupal-workspaces-drupal-drupal-contrib). Without plugins, run from the Drupal workspace, not this package's source directory:
 
 ```bash
 # Existing command stays compatible: defaults to Claude Code on first install
@@ -45,8 +45,8 @@ The installer detects Drupal at the workspace root or in top-level subdirectorie
 | Shared | Claude Code | Codex |
 |---|---|---|
 | `.drupal-contrib/context.md`: site table and workflow | `CLAUDE.md`: entry instructions | `AGENTS.md`: entry instructions |
-| `.drupal-contrib/agents/`: complete role procedures | `.claude/agents/*.md` | `.codex/agents/*.toml` |
-| Same source skills and helper scripts | `.claude/skills/` | `.agents/skills/` |
+| `.drupal-contrib/agents/`: complete role procedures | `.claude/agents/*.md` (not with `--plugins`) | `.codex/agents/*.toml` |
+| Same source skills and helper scripts | `.claude/skills/` (only external skills with `--plugins`) | `.agents/skills/` |
 | Shared command guard logic | `.claude/settings.json` and hooks | `.codex/config.toml`, hooks, and rules |
 | `.drupal-contrib/install.json`: settings and file ownership | `.mcp.json`: drupalorg-cli MCP | MCP entry in `.codex/config.toml` |
 

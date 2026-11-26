@@ -172,7 +172,7 @@ cat .gitlab/merge_request_templates/Default.md
 
 # Step 2 — open it (refuses a non-issue fork or a body without the disclosure;
 # prints the existing MR instead if the push already opened one)
-python3 <skills-root>/drupal-gitlab/create_mr.py --fork issue/<project>-<issue-id> \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab/create_mr.py --fork issue/<project>-<issue-id> \
   --target project/<repo> --source-branch {branch-name} --target-branch main \
   --title "feat: #{issue-id} Short summary" --description-file /tmp/mr_body.md
 ```

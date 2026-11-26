@@ -122,8 +122,9 @@ function findBin(name) {
 
 async function main() {
   if (cli.help) {
-    console.log('Usage: drupal-claude-skills [--target claude-code|codex|both] [--yes] [--dry-run] [--skip-external]');
+    console.log('Usage: somu-kit [--target claude-code|codex|both] [--plugins|--no-plugins] [--yes] [--dry-run] [--skip-external]');
     console.log('--yes accepts detected defaults; --dry-run previews without writes or downloads.');
+    console.log('--plugins: Claude Code loads the skills and agents from the drupal and drupal-contrib plugins; setup writes only the workspace config. Remembered until --no-plugins.');
     return;
   }
   console.log('\nDrupal contribution toolkit setup\n');
@@ -132,6 +133,7 @@ async function main() {
   const targets = cli.target === 'both' ? ['claude-code', 'codex']
     : cli.target ? [cli.target] : state.targets || ['claude-code'];
   if (!Array.isArray(targets) || !targets.length || targets.some(target => !['claude-code', 'codex'].includes(target))) throw new Error('Invalid targets in installation state');
+  const plugins = cli.plugins ?? Boolean(state.plugins);
   const overrides = localOverrides(state.localOverrides);
   const output = writer(CWD, state.files, cli.dryRun, overrides);
   const log = output.log;
@@ -292,7 +294,7 @@ async function main() {
 
   installTargets({
     cwd: CWD, packageRoot: PACKAGE_ROOT, skillSources: SKILL_SOURCES, agentsDir: AGENTS_DIR, targets, output, render: renderTemplate, vars,
-    externalSkills: externalSkills.map(({ name }) => name),
+    externalSkills: externalSkills.map(({ name }) => name), plugins,
   });
 
   installExternal({
@@ -331,6 +333,7 @@ async function main() {
     fs.writeFileSync(LOCK_FILE, JSON.stringify({
       version: 1, targets: [...new Set([...(state.targets || []), ...targets])],
       vars: { sites, defaultSite, drupalCliBin: drupalorgBin },
+      ...(plugins ? { plugins: true } : {}),
       ...(overrides.length ? { localOverrides: overrides } : {}),
       files: output.files,
     }, null, 2) + '\n');
@@ -344,6 +347,7 @@ async function main() {
     console.log('Custom agents and PreToolUse hooks require a client supporting those features. Configuration alone does not activate untrusted hooks.');
   }
   if (targets.includes('claude-code')) console.log('Claude Code: use /drupal-issue-start <url>.');
+  if (plugins && targets.includes('claude-code')) console.log('Plugin mode: enable drupal@somu-kit and drupal-contrib@somu-kit for this workspace (see README).');
   console.log(cli.dryRun ? '\nPreview only: no files changed or external skills downloaded.' : '\nInstallation files prepared. Resolve any integration notices above before starting issue work.');
 }
 

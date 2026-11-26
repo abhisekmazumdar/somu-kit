@@ -9,7 +9,7 @@ description: >
   human to decide what to fix.
 tools: Read, Glob, Grep, Write, Bash, TodoWrite
 skills:
-  - drupal-automated-testing
+  - drupal-phpunit
   - ddev-expert
   - playwright-cli
 ---
@@ -86,7 +86,7 @@ do not invent scenarios that were never reviewed by the human.
 
 ## Phase 2 — PHPUnit layer
 
-Run the module's automated tests inside DDEV, following the `drupal-automated-testing`
+Run the module's automated tests inside DDEV, following the `drupal-phpunit`
 skill for env vars and the Functional dual-container trap.
 
 ```bash

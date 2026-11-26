@@ -190,11 +190,11 @@ alone. Pass the MR's target branch as the base. Without `--base` it falls
 back to the branch's upstream (so only unpushed work), then `origin/HEAD`.
 
 ```bash
-python3 "<skills-root>/drupal-coding-standards/ci_lint.py" <module-dir> --base origin/<target-branch>
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-coding-standards/ci_lint.py <module-dir> --base origin/<target-branch>
 # the whole module, like CI (slow on modules with large bundled JS):
-python3 "<skills-root>/drupal-coding-standards/ci_lint.py" <module-dir> --all
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-coding-standards/ci_lint.py <module-dir> --all
 # one job, or a job the module's .gitlab-ci.yml skips:
-python3 "<skills-root>/drupal-coding-standards/ci_lint.py" <module-dir> --base origin/<target-branch> --only stylelint --include-skipped
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-coding-standards/ci_lint.py <module-dir> --base origin/<target-branch> --only stylelint --include-skipped
 ```
 
 Pass the module's host path (e.g. `<webroot>/modules/contrib/<project>`). It

@@ -27,7 +27,7 @@ description of the feature plus the project name.
      git.drupalcode.org, or `issue:show` comes back empty):
      ```bash
      GITLAB_HOST=git.drupalcode.org glab issue view <nid> --repo project/<project> --comments
-     python3 "<skills-root>/drupal-gitlab-inline-comments/fetch_issue_notes.py" project/<project>#<nid>
+     python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab-comments/fetch_issue_notes.py project/<project>#<nid>
      ```
    If you can't read the issue, stop and say what failed. Never plan from a
    guess at its contents.

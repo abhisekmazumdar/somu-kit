@@ -61,7 +61,7 @@ glab api --hostname git.drupalcode.org \
 ## Diagnosing what a failure means
 
 This file only covers fetching and streaming the log. Once you have the
-trace text in hand, the workspace-relative
-`.drupal-contrib/agents/drupal-issue-agent/references/ci-failure-patterns.md`
+trace text in hand, the lookup table at
+`${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab/references/ci-failure-patterns.md`
 maps common failure strings (PHPCS, PHPStan, PHPUnit, Composer, CSpell) to
 their diagnosis and fix.

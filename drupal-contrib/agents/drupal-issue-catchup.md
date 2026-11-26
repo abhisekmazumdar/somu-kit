@@ -11,7 +11,7 @@ description: >
 tools: Read, Glob, Grep, Write, Edit, Bash, TodoWrite, WebFetch
 skills:
   - drupalorg-cli
-  - drupal-gitlab-inline-comments
+  - drupal-gitlab-comments
   - drupal-related-issues
   - issue-record-update
 ---
@@ -62,7 +62,7 @@ Extract from the record:
 - **What was done** in the last session
 - **Open items** from the last session
 - **MR iid(s)** if any
-- **The prior review card** from `## At a Glance` (`<skills-root>/issue-record-update/references/review-card.md`) — each row's
+- **The prior review card** from `## At a Glance` (`${CLAUDE_PLUGIN_ROOT}/skills/issue-record-update/references/review-card.md`) — each row's
   mark, the verdict, `▶ Next`, and `⏸ Waiting on`. Older records may still
   carry `**Verdict:**`/`**Next action:**`/`**Blocked on:**` bullets instead;
   read those the same way. It's a snapshot, not history, so it only tells
@@ -102,13 +102,13 @@ drupalorg issue:show <nid> --with-comments --format=llm
 
 For migrated (GitLab work items):
 ```bash
-python3 "<skills-root>/drupal-gitlab-inline-comments/fetch_issue_notes.py" \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab-comments/fetch_issue_notes.py \
   project/<project>#<nid>
 ```
 
 **b) Inline MR reviewer threads** (if an MR exists):
 ```bash
-python3 "<skills-root>/drupal-gitlab-inline-comments/fetch.py" \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab-comments/fetch.py \
   https://git.drupalcode.org/project/<project>/-/merge_requests/<mr-iid>
 ```
 
@@ -130,12 +130,12 @@ GITLAB_HOST=git.drupalcode.org glab ci status \
   -b <branch> -R project/<project>
 ```
 Anything beyond these commands (job logs, other repos, unusual errors): read
-`<skills-root>/drupal-gitlab/SKILL.md` first.
+`${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab/SKILL.md` first.
 
 **d) Backlink scan** — other local issue records that mention this one but
 that this issue's own record doesn't yet list:
 ```bash
-python3 "<skills-root>/drupal-related-issues/find_related_issues.py" <nid>
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-related-issues/find_related_issues.py <nid>
 ```
 
 ---
@@ -273,9 +273,9 @@ The reply is the go for what it names — no second confirmation.
   - Code fixes → use `drupal-issue-agent` (Path A fix loop) with
     `preapproved: yes` and the named items as its scope — it runs through to
     the pushed MR
-  - Rebase needed → read `<skills-root>/drupal-issue-reroll/SKILL.md` and
+  - Rebase needed → read `${CLAUDE_PLUGIN_ROOT}/skills/drupal-issue-reroll/SKILL.md` and
     follow it
-  - Draft a comment → read `<skills-root>/drupalorg-writing/SKILL.md`
+  - Draft a comment → read `${CLAUDE_PLUGIN_ROOT}/skills/drupalorg-writing/SKILL.md`
     first and follow it (markup, AI disclosure); write it to
     `issues/<nid>/drafts/<YYYY-MM-DD>-<kind>.md`, never post it
   - Repo not set up → use `drupal-repo-setup` agent

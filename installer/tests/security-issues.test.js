@@ -16,7 +16,6 @@ const start = 'skills/drupal-issue-start/SKILL.md';
 const agent = 'agents/drupal-issue-agent.md';
 const catchup = 'agents/drupal-issue-catchup.md';
 const startRef = 'skills/drupal-issue-start/references/security-issues.md';
-const agentRef = 'agents/drupal-issue-agent/references/security-issues.md';
 
 test('security URLs are recognized where issue URLs are parsed', () => {
   for (const f of [start, catchup]) {
@@ -26,12 +25,11 @@ test('security URLs are recognized where issue URLs are parsed', () => {
 });
 
 test('the security procedure lives in references, and the inline text points to it', () => {
-  assert.match(read(start), /<skills-root>\/drupal-issue-start\/references\/security-issues\.md/);
-  assert.match(read(agent), /\.drupal-contrib\/agents\/drupal-issue-agent\/references\/security-issues\.md/);
+  for (const f of [start, agent]) assert.match(read(f), /\$\{CLAUDE_PLUGIN_ROOT\}\/skills\/drupal-issue-start\/references\/security-issues\.md/, f);
   assert.match(read(startRef), /glab issue view <iid> --repo <security_repo>/);
   assert.match(read(startRef), /Never list a\s+push or an MR/);
-  assert.match(read(agentRef), /commit locally,\s+and stop/);
-  assert.match(read(agentRef), /PRIVATE: security issue/);
+  assert.match(read(startRef), /commit locally,\s+and stop/);
+  assert.match(read(startRef), /PRIVATE: security issue/);
 });
 
 test('security issues never push or open an MR', () => {

@@ -1,8 +1,7 @@
 ---
 name: drupal-issue-start
 description: >
-  Use when the user wants to start, continue, or get oriented on a specific Drupal issue — whether they paste a drupal.org or GitLab issue URL, reference an issue by number (e.g. "issue 3234567"), or ask to pick up, review, or catch up on a named issue. Handles first visits and returning sessions alike: loads any prior work context, fetches the current issue state, and presents a structured summary before any action is taken. Trigger on: bare issue URLs, "work on issue N", "start on N", "continue on N", "what's needed for issue N", "get me up to speed on issue N".
-argument-hint: <issue-url>
+  Use when the user wants to start, continue, or review a specific Drupal issue: a pasted drupal.org or GitLab issue URL, an issue number ("issue 3234567"), or a request to pick up or review a named issue. Handles first visits and returning sessions alike: loads any prior work context, fetches the current issue state, and presents a structured summary before any action is taken. Trigger on: bare issue URLs, "work on issue N", "start on N", "continue on N", "what's needed for issue N". For "catch me up" or "what's new" on an issue that already has a local record, use the drupal-issue-catchup agent instead.
 ---
 
 # /drupal-issue-start
@@ -38,7 +37,7 @@ Extract `nid` and `project` from the URL:
 | `https://git.drupalcode.org/project/<name>/-/work_items/<nid>` | trailing number | `<name>` | set `is_migrated=true` |
 | `https://git.drupalcode.org/security/<sec-nid>-<slug>/-/work_items/<iid>` (or `/-/issues/<iid>`) | `security-<sec-nid>-<iid>` | from the issue (Phase 2) | set `is_security=true`, `<security_repo>` = `security/<sec-nid>-<slug>` |
 
-For a security issue, read `<skills-root>/drupal-issue-start/references/security-issues.md` now. It changes Phases 0, 2, 2.5 and 4.
+For a security issue, read `${CLAUDE_PLUGIN_ROOT}/skills/drupal-issue-start/references/security-issues.md` now. It changes Phases 0, 2, 2.5 and 4.
 
 If the URL cannot be parsed, ask the user for the issue number and project name separately.
 
@@ -126,7 +125,7 @@ drupalorg issue:get-fork <nid> --format=llm
 For **migrated** issues (`is_migrated=true`):
 ```bash
 GITLAB_HOST=git.drupalcode.org glab issue view <nid> --repo project/<project>
-python3 "<skills-root>/drupal-gitlab-inline-comments/fetch_issue_notes.py" project/<project>#<nid>
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab-comments/fetch_issue_notes.py project/<project>#<nid>
 drupalorg mr:list <nid> --format=llm
 drupalorg issue:get-fork <nid> --format=llm
 ```
@@ -161,7 +160,7 @@ Also note any **related issues** mentioned in comments or the issue body (e.g. "
 relationships the live comment thread doesn't mention (e.g. another issue's
 own notes already reference this one):
 ```bash
-python3 "<skills-root>/drupal-related-issues/find_related_issues.py" <nid>
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-related-issues/find_related_issues.py <nid>
 ```
 Note every referencing issue and the matched line — these feed into Phase 3
 and Phase 4 alongside the comment-derived related issues.
@@ -219,7 +218,7 @@ GITLAB_HOST=git.drupalcode.org glab auth status
 
 **Now fetch the full inline reviewer threads — for this one picked MR only:**
 ```bash
-python3 "<skills-root>/drupal-gitlab-inline-comments/fetch.py" \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab-comments/fetch.py \
   https://git.drupalcode.org/project/<project>/-/merge_requests/<picked-mr-iid>
 GITLAB_HOST=git.drupalcode.org glab mr note list <picked-mr-iid> --repo project/<project>
 ```
@@ -303,7 +302,7 @@ Write `issues/<nid>/README.md`:
 ## At a Glance
 <!-- Overwritten in place every session with the review card — the block a
      human reads before anything else. Never appended to. -->
-<the review card from Phase 4, exactly as shown in chat, inside its ```text fence — format: `<skills-root>/issue-record-update/references/review-card.md`>
+<the review card from Phase 4, exactly as shown in chat, inside its ```text fence — format: `${CLAUDE_PLUGIN_ROOT}/skills/issue-record-update/references/review-card.md`>
 
 ## Issue Summary
 <3-5 sentences: what is broken or missing, why it matters, current state of discussion,
@@ -356,7 +355,7 @@ just within one.
 - Never touch the Work Log or Notes sections.
 
 **Always overwrite `## At a Glance` in place** with this session's review
-card (`<skills-root>/issue-record-update/references/review-card.md`) — a snapshot of *now*, not a history; that's what the Work Log
+card (`${CLAUDE_PLUGIN_ROOT}/skills/issue-record-update/references/review-card.md`) — a snapshot of *now*, not a history; that's what the Work Log
 is for. A record still carrying the older `**Verdict:**`/`**Next action:**`
 bullets gets them replaced by the card. Source `▶ Next` and `⏸ Waiting on`
 only from the current session's findings, never by accumulating prior
@@ -399,7 +398,7 @@ Also check: if related issues were found (from comments or the backlink scan) an
 
 Present this in full. Do not skip sections.
 
-**Start with the review card** (`<skills-root>/issue-record-update/references/review-card.md`), contributor rows only: the
+**Start with the review card** (`${CLAUDE_PLUGIN_ROOT}/skills/issue-record-update/references/review-card.md`), contributor rows only: the
 verdict, the eight checks with their marks, and one owned next step. Phase
 2.5 is a preliminary read, so rows it didn't actually establish stay ❔.
 Everything after the card is the detail behind it.

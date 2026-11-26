@@ -10,8 +10,8 @@ skills:
   - issue-record-update
   - drupalorg-cli
   - drupal-gitlab
-  - drupal-gitlab-inline-comments
-  - drupal-automated-testing
+  - drupal-gitlab-comments
+  - drupal-phpunit
   - drupal-coding-standards
   - drupalorg-writing
   - ddev-expert
@@ -117,8 +117,9 @@ A security fix must stay private until the advisory is released:
   `project/<project>`. Don't run `create_mr.py` or `glab mr create`.
 - **Never push.** The run ends at a local commit.
 - Before A2/B4, read
-  `.drupal-contrib/agents/drupal-issue-agent/references/security-issues.md`
-  for the checkout, the stop, and the draft marker.
+  `${CLAUDE_PLUGIN_ROOT}/skills/drupal-issue-start/references/security-issues.md`
+  (its drupal-issue-agent section) for the checkout, the stop, and the
+  draft marker.
 
 ## Phase 0 — Receive context from drupal-issue-start
 
@@ -196,7 +197,7 @@ GITLAB_HOST=git.drupalcode.org glab ci status \
   -b <branch> -R project/<project>
 
 # Inline reviewer threads — diff-level comments on the MR
-python3 "<skills-root>/drupal-gitlab-inline-comments/fetch.py" \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab-comments/fetch.py \
   https://git.drupalcode.org/project/<project>/-/merge_requests/<mr-iid>
 
 # Top-level MR comments (not tied to a diff line)
@@ -213,7 +214,7 @@ drupalorg mr:logs <nid> <mr-iid>
 ```
 
 After reading the trace, match it against the common-pattern lookup table at
-`.drupal-contrib/agents/drupal-issue-agent/references/ci-failure-patterns.md` before
+`${CLAUDE_PLUGIN_ROOT}/skills/drupal-gitlab/references/ci-failure-patterns.md` before
 attempting any fix — most CI failures fall into one of the buckets listed
 there. Read that file only now, when a pipeline is actually failing; it's
 reference material, not part of the always-active review procedure.
@@ -303,7 +304,7 @@ If the module has no `phpstan.neon`, skip PHPStan locally — CI will catch it.
 
 ### A5. PHPUnit tests
 
-**On the first pass, a green pipeline on the head commit counts as evidence** that the suite passes. It doesn't prove the fix: before an RTBC verdict, run the test that covers the change locally with the fix reverted and see it fail, then with the fix and see it pass (the Fit proof in A7). Also run locally when the pipeline is failing, missing or stale, or the user asks. Use the `drupal-automated-testing` skill.
+**On the first pass, a green pipeline on the head commit counts as evidence** that the suite passes. It doesn't prove the fix: before an RTBC verdict, run the test that covers the change locally with the fix reverted and see it fail, then with the fix and see it pass (the Fit proof in A7). Also run locally when the pipeline is failing, missing or stale, or the user asks. Use the `drupal-phpunit` skill.
 
 ### A6. Timeline cross-reference
 
@@ -486,7 +487,7 @@ Codex) and why now. Nothing applies? Omit the line. At A9:
 
 `drupal-issue-reroll` is different: this toolkit's own skill, covered by the go.
 When the branch is behind (`COMMITS_BEHIND` > 0), read
-`<skills-root>/drupal-issue-reroll/SKILL.md` and follow it (it sets
+`${CLAUDE_PLUGIN_ROOT}/skills/drupal-issue-reroll/SKILL.md` and follow it (it sets
 `disable-model-invocation` only so a passing mention can't trigger it, which
 also keeps it from being preloaded here).
 
@@ -494,7 +495,7 @@ Write the full report below to `issues/<nid>/review-<YYYY-MM-DD>.md` (a new
 file per day; append a `## Re-review` section if one exists) and carry on —
 no pause.
 
-Open with the review card (`<skills-root>/issue-record-update/references/review-card.md`), contributor rows only. This is the
+Open with the review card (`${CLAUDE_PLUGIN_ROOT}/skills/issue-record-update/references/review-card.md`), contributor rows only. This is the
 full review, so `Fix`, `Tests`, and `Standards` come from A3-A7 and can be
 ✅ or ❌, not just a preliminary read. Then 1-2 sentences justifying the
 verdict, then the detail.
@@ -570,7 +571,7 @@ For each fix-list item:
    [ ] CSpell / ESLint / Stylelint clean (drupal-coding-standards skill: `ci_lint.py <module-dir> --base origin/<target-branch>`) — American English in new code, comments, doc comments, and test method names
    [ ] Commit message matches project style (checked in step 4)
    [ ] Branch up to date with origin/<default-branch>
-       → if behind: follow `<skills-root>/drupal-issue-reroll/SKILL.md` before pushing
+       → if behind: follow `${CLAUDE_PLUGIN_ROOT}/skills/drupal-issue-reroll/SKILL.md` before pushing
    ```
 7. After all fixes pass preflight: `git -C <webroot>/modules/contrib/<project> push <project>-<nid> HEAD`
 8. Poll pipeline (check the issue fork first — that's where the branch was
@@ -750,7 +751,7 @@ plan are done, run pre-commit checks before staging anything:
    ddev exec bash -c "cd /var/www/html/<webroot>/modules/contrib/<project>--<nid> && phpstan analyse --configuration=phpstan.neon --memory-limit=256M 2>&1"
    ```
    Skip if the module has no `phpstan.neon`.
-3. **Tests** — if tests exist or were added, use the `drupal-automated-testing` skill.
+3. **Tests** — if tests exist or were added, use the `drupal-phpunit` skill.
    For Unit tests (no DB needed):
    ```bash
    ddev exec phpunit --bootstrap /var/www/html/<webroot>/core/tests/bootstrap.php \
@@ -820,7 +821,7 @@ be silently "fixed" by re-editing code without visibility. This agent implements
 - Any time the user says "test it", "run the tests", or "verify in the browser"
 - Any time the user asks for **local testing** ("test locally", "test this
   locally", "run tests locally") — run local PHPUnit first (per A5/B5's
-  local test steps, using the `drupal-automated-testing` skill), then
+  local test steps, using the `drupal-phpunit` skill), then
   **proactively offer** this Playwright e2e layer as a follow-up rather than
   waiting for the user to ask separately. Local PHPUnit alone doesn't cover
   the UI-facing path; say so when offering it.

@@ -93,7 +93,7 @@ or check out without the module directory.
 # drupal-clone-contrib skill handles the clone
 ```
 
-Read `<skills-root>/drupal-clone-contrib/SKILL.md` and follow it for `<project>` (it sets `disable-model-invocation`, so it can't be preloaded here), then set
+Read `${CLAUDE_PLUGIN_ROOT}/skills/drupal-clone-contrib/SKILL.md` and follow it for `<project>` (it sets `disable-model-invocation`, so it can't be preloaded here), then set
 `<module_dir>` to the newly created directory and continue to Step 4.
 
 **With `preapproved: yes`:** clone without the card below, exactly as recon does.
@@ -118,7 +118,7 @@ Do not clone until the user says yes. Once approved:
 # drupal-clone-contrib skill handles the clone
 ```
 
-Read `<skills-root>/drupal-clone-contrib/SKILL.md` and follow it for `<project>` (it sets `disable-model-invocation`, so it can't be preloaded here).
+Read `${CLAUDE_PLUGIN_ROOT}/skills/drupal-clone-contrib/SKILL.md` and follow it for `<project>` (it sets `disable-model-invocation`, so it can't be preloaded here).
 
 After cloning, set `<module_dir>` to the newly created directory.
 

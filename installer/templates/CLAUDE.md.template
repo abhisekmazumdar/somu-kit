@@ -3,7 +3,7 @@
 Read `.drupal-contrib/context.md` in full before contribution work. It contains the shared site table, workflow, and issue-record rules.
 
 Resolve `<skills-root>` to `.claude/skills`. Start with `/drupal-issue-start <url>`.
-Delegate the named roles using the installed `.claude/agents/` definitions.
+Delegate the named roles using the installed `.claude/agents/` definitions, or the `drupal-contrib:` plugin agents (`drupal-contrib:drupal-issue-agent`) when the workspace uses the plugins.
 Preserve approved scope and relay agent pauses to the human.
 
 The installer prepares `.claude/settings.json`, a Git guardrail hook, and

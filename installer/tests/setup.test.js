@@ -165,9 +165,50 @@ test('localOverrides are validated and survive a setup re-run', t => {
   fs.writeFileSync(lockPath, JSON.stringify(lock, null, 2));
   const output = setup(cwd);
   assert.equal(read(cwd, agent), 'project-specific agent');
-  assert.equal(read(cwd, `.drupal-contrib/proposals/${agent}`), read(cwd, '.drupal-contrib/agents/drupal-issue-agent.md'));
+  assert.equal(read(cwd, `.drupal-contrib/proposals/${agent}`), read(cwd, '.drupal-contrib/agents/drupal-issue-agent.md').replaceAll('<skills-root>/', '.claude/skills/'));
   assert.match(output, /local override kept/);
   assert.deepEqual(JSON.parse(read(cwd, '.drupal-contrib/install.json')).localOverrides, [agent]);
+});
+
+test('copy installs rewrite plugin paths to where the copy lives', t => {
+  const cwd = workspace(t);
+  fs.mkdirSync(path.join(cwd, 'web'));
+  setup(cwd, '--target', 'both');
+  const installed = ['.claude', '.agents', '.codex', '.drupal-contrib'].flatMap(root => fs.readdirSync(path.join(cwd, root), { recursive: true })
+    .map(f => path.join(root, f)).filter(f => fs.statSync(path.join(cwd, f)).isFile()));
+  for (const f of installed) assert.doesNotMatch(read(cwd, f), /CLAUDE_PLUGIN_ROOT/, f);
+  assert.match(read(cwd, '.claude/skills/drupal-gitlab/SKILL.md'), /python3 \.claude\/skills\/drupal-gitlab\/create_mr\.py/);
+  assert.match(read(cwd, '.agents/skills/drupal-gitlab/SKILL.md'), /python3 \.agents\/skills\/drupal-gitlab\/create_mr\.py/);
+  assert.match(read(cwd, '.codex/agents/drupal-issue-agent.toml'), /\.agents\/skills\/drupal-gitlab\/references\/ci-failure-patterns\.md/);
+  assert.match(read(cwd, '.drupal-contrib/agents/drupal-issue-agent.md'), /<skills-root>\/drupal-gitlab\/references\/ci-failure-patterns\.md/);
+});
+
+test('plugin mode leaves skills and agents to the plugins and approves their cached scripts', t => {
+  const cwd = workspace(t);
+  fs.mkdirSync(path.join(cwd, 'web'));
+  setup(cwd, '--target', 'claude-code');
+  put(cwd, '.claude/skills/my-own/SKILL.md', 'mine');
+  const configDir = path.join(cwd, 'claude-config');
+  const run = (...args) => {
+    const result = spawnSync(process.execPath, [src('bin/setup.js'), '--yes', '--skip-external', ...args], { cwd, encoding: 'utf8', timeout: 15000, env: { ...process.env, CLAUDE_CONFIG_DIR: configDir, DRUPAL_CONTRIB_LOCAL: path.join(cwd, '.no-local.json') } });
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+  };
+  run('--plugins');
+  const own = skillNames().filter(name => fs.existsSync(path.join(cwd, '.claude/skills', name)));
+  assert.deepEqual(own, []);
+  assert.equal(read(cwd, '.claude/skills/my-own/SKILL.md'), 'mine');
+  assert.deepEqual(fs.existsSync(path.join(cwd, '.claude/agents')) ? fs.readdirSync(path.join(cwd, '.claude/agents')) : [], []);
+  assert.ok(fs.existsSync(path.join(cwd, '.drupal-contrib/agents/drupal-issue-agent.md')));
+  const allow = JSON.parse(read(cwd, '.claude/settings.json')).permissions.allow;
+  assert.ok(allow.includes(`Bash(python3 ${configDir}/plugins/cache/somu-kit/drupal-contrib/*/skills/drupal-gitlab/create_mr.py *)`));
+  assert.ok(allow.includes(`Bash(python3 ${configDir}/plugins/cache/somu-kit/drupal/*/skills/drupal-coding-standards/ci_lint.py *)`));
+  assert.equal(JSON.parse(read(cwd, '.drupal-contrib/install.json')).plugins, true);
+  run();
+  assert.ok(!fs.existsSync(path.join(cwd, '.claude/skills/drupal-gitlab')), 'plugin mode is remembered');
+  run('--no-plugins');
+  assert.ok(fs.existsSync(path.join(cwd, '.claude/skills/drupal-gitlab/SKILL.md')));
+  assert.ok(fs.existsSync(path.join(cwd, '.claude/agents/drupal-issue-agent.md')));
+  assert.equal(JSON.parse(read(cwd, '.drupal-contrib/install.json')).plugins, undefined);
 });
 
 test('re-running setup never prunes installer-recorded external skills', t => {

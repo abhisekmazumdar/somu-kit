@@ -12,6 +12,16 @@
       "name": "core",
       "source": "./core",
       "description": "Generic skills for every project: writing voice, skateboard planning, and short working principles."
+    },
+    {
+      "name": "drupal",
+      "source": "./drupal",
+      "description": "Skills for any Drupal project: DDEV, PHPUnit, coding standards and change impact."
+    },
+    {
+      "name": "drupal-contrib",
+      "source": "./drupal-contrib",
+      "description": "Drupal contribution workflow: drupal.org and GitLab issues, MRs, reviews and issue records. Needs the workspace setup from the npx installer."
     }
   ]
 }

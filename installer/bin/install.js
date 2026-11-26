@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 
@@ -9,7 +10,7 @@ const quote = value => `'${value.replace(/'/g, "'\\''")}'`;
 const escapeRe = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 function options(args) {
-  const result = { target: null, dryRun: false, yes: false, skipExternal: false };
+  const result = { target: null, dryRun: false, yes: false, skipExternal: false, plugins: null };
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === '--target') result.target = args[++i];
@@ -20,6 +21,8 @@ function options(args) {
     else if (arg === '--dry-run') result.dryRun = true;
     else if (arg === '--yes') result.yes = true;
     else if (arg === '--skip-external') result.skipExternal = true;
+    else if (arg === '--plugins') result.plugins = true;
+    else if (arg === '--no-plugins') result.plugins = false;
     else if (arg === '--help' || arg === '-h') result.help = true;
     else throw new Error(`Unknown option: ${arg}`);
     if (arg === '--target' && !result.target) throw new Error('--target needs a value');
@@ -314,8 +317,30 @@ function agentToml(content) {
   return `name = ${JSON.stringify(name)}\ndescription = ${JSON.stringify(description)}\ndeveloper_instructions = ${JSON.stringify(instructions)}\n`;
 }
 
-function installTargets({ cwd, packageRoot, skillSources, agentsDir, targets, output, render, vars, externalSkills = [] }) {
-  output.copyManaged(agentsDir, '.drupal-contrib/agents');
+// Skills and agents point at their own plugin's files with
+// ${CLAUDE_PLUGIN_ROOT}, which Claude Code fills in only for plugins. A copy
+// install gets the paths rewritten to where the copy lives.
+function localPaths(skillsRoot) {
+  return (content, name) => !name.endsWith('.md') ? content : content
+    .replaceAll('${CLAUDE_PLUGIN_ROOT}/skills/', `${skillsRoot}/`)
+    .replaceAll('${CLAUDE_PLUGIN_ROOT}/agents/', '.drupal-contrib/agents/');
+}
+
+// Plugin mode: scripts run from Claude Code's plugin cache, whose path holds
+// the version. Each `.claude/skills/<skill>/<script>` rule gets a twin that
+// matches any cached version of the plugin that ships <skill>.
+function pluginRules(rules, skillPlugin, configDir) {
+  const out = [];
+  for (const rule of rules) {
+    out.push(rule);
+    const m = rule.match(/^Bash\(python3 \.claude\/skills\/([a-z0-9-]+)\/(.+)\)$/);
+    if (m && skillPlugin[m[1]]) out.push(`Bash(python3 ${configDir}/plugins/cache/somu-kit/${skillPlugin[m[1]]}/*/skills/${m[1]}/${m[2]})`);
+  }
+  return out;
+}
+
+function installTargets({ cwd, packageRoot, skillSources, agentsDir, targets, output, render, vars, externalSkills = [], plugins = false }) {
+  output.copyManaged(agentsDir, '.drupal-contrib/agents', new Set(), { transformContent: localPaths('<skills-root>') });
   output.write('.drupal-contrib/context.md', render(path.join(packageRoot, 'templates', 'context.md.template'), vars));
   // If CLAUDE.md and AGENTS.md are kept as one shared file (either symlinked
   // to the other), resolve that up front — whichever target's upsertBlock
@@ -333,8 +358,13 @@ function installTargets({ cwd, packageRoot, skillSources, agentsDir, targets, ou
     // installExternal(), not this walk — preserve them or prune() deletes
     // them on every re-run (permanently, when offline or --skip-external).
     const externalDirs = externalSkills.map(name => `${skillsRoot}/${name}/`);
-    output.copyManaged(skillSources, skillsRoot, new Set(), {
+    // In plugin mode Claude Code loads our skills and agents from the
+    // drupal and drupal-contrib plugins, so the copies are pruned (an empty
+    // source list) and only external skills stay in the skills root.
+    const asPlugin = claude && plugins;
+    output.copyManaged(asPlugin ? [] : skillSources, skillsRoot, new Set(), {
       preserve: new Set(Object.keys(output.files).filter(relative => externalDirs.some(dir => relative.startsWith(dir)))),
+      transformContent: localPaths(skillsRoot),
     });
     const hookPath = path.join(cwd, root, 'hooks', 'block-dangerous-git.sh');
     // block-dangerous-git.sh needs the executable bit, so it's written
@@ -349,10 +379,16 @@ function installTargets({ cwd, packageRoot, skillSources, agentsDir, targets, ou
     const instruction = claude ? 'CLAUDE.md' : 'AGENTS.md';
     output.upsertBlock(instruction, fs.readFileSync(path.join(packageRoot, 'templates', `${instruction}.template`), 'utf8'), 'drupal-contrib-claude-skills', { shared: sharedInstructionFile });
     if (claude) {
-      output.copyManaged(agentsDir, '.claude/agents');
+      output.copyManaged(asPlugin ? [] : agentsDir, '.claude/agents', new Set(), { transformContent: localPaths(skillsRoot) });
       // Serialize after substitution so quotes/backslashes in executable paths remain valid JSON.
       const settings = JSON.parse(fs.readFileSync(path.join(packageRoot, 'templates/settings.json.template'), 'utf8'));
       settings.hooks.PreToolUse[0].hooks[0].command = `bash ${quote(hookPath)}`;
+      if (asPlugin) {
+        const skillPlugin = Object.fromEntries([].concat(skillSources).flatMap(root => fs.readdirSync(root)
+          .map(name => [name, path.basename(path.dirname(root))])));
+        const configDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
+        for (const tier of ['allow', 'ask']) settings.permissions[tier] = pluginRules(settings.permissions[tier], skillPlugin, configDir);
+      }
       output.write('.claude/settings.json', JSON.stringify(settings, null, 2) + '\n');
       const mcp = JSON.parse(fs.readFileSync(path.join(packageRoot, 'templates/mcp.json.template'), 'utf8'));
       mcp.mcpServers['drupalorg-cli'].args[0] = vars.DRUPAL_CLI_BIN;
@@ -369,11 +405,11 @@ function installTargets({ cwd, packageRoot, skillSources, agentsDir, targets, ou
       output.write('.codex/hooks.json', JSON.stringify(hooks, null, 2) + '\n');
       output.copyManaged(agentsDir, '.codex/agents', new Set(), {
         renameFile: file => file.endsWith('.md') ? file.replace(/\.md$/, '.toml') : null,
-        transformContent: agentToml,
+        transformContent: (content, name) => agentToml(localPaths(skillsRoot)(content, name)),
         shallow: true,
       });
     }
   }
 }
 
-module.exports = { options, readState, localOverrides, writer, installTargets, agentToml, symlinkAncestor };
+module.exports = { options, readState, localOverrides, writer, installTargets, agentToml, symlinkAncestor, localPaths, pluginRules };

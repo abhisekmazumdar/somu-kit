@@ -169,8 +169,9 @@ Three URL forms are valid inputs to the agent:
 # Issue body
 GITLAB_HOST=git.drupalcode.org glab issue view <nid> --repo project/<name>
 
-# All comments (chronological, system notes filtered)
-python3 "<skills-root>/drupal-gitlab-inline-comments/fetch_issue_notes.py" project/<name>#<nid>
+# All comments (chronological, system notes filtered): fetch_issue_notes.py
+# from the drupal-gitlab-comments skill, with the path that skill gives
+python3 <drupal-gitlab-comments>/fetch_issue_notes.py project/<name>#<nid>
 ```
 
 `drupalorg mr:list`, `mr:diff`, `mr:status`, and `mr:logs` **still work** for both migrated and non-migrated projects — only the issue body/comments differ.
@@ -189,7 +190,7 @@ For a module to be available for git operations (checkout, branch, push), its di
 
 ## Skills and agents
 
-Skills live under `<skills-root>`. Shared role procedures are installed in `.drupal-contrib/agents/`; the installer also generates each client's native agent definitions.
+Skills live under `<skills-root>`, or in the `drupal` and `drupal-contrib` plugins when the workspace uses them (external skills stay under `<skills-root>`). Shared role procedures are installed in `.drupal-contrib/agents/`; the installer also generates each client's native agent definitions.
 
 ### Agents
 - `drupal-issue-agent` — full lifecycle: MR review (Path A) and new issue implementation (Path B)
@@ -206,9 +207,9 @@ Skills live under `<skills-root>`. Shared role procedures are installed in `.dru
 
 ### Other key skills
 - `drupal-issue-reroll` — rebase a branch on latest upstream, run checks, force-push
-- `drupal-gitlab-inline-comments` — fetch MR inline threads and issue notes
+- `drupal-gitlab-comments` — fetch MR inline threads and issue notes
 - `drupal-coding-standards` — PHPCS/PHPCBF via ddev with automatic module config detection
 - `drupalorg-cli` — reference stub; run `drupalorg skill:get drupalorg-cli` before using any `drupalorg` command; pulled from `mglaman/drupalorg-cli` at setup time (not part of this package — update with `npx skills update`)
 - `ddev-expert` — ddev environment management, troubleshooting, container commands
-- `drupal-automated-testing` — writing/modifying PHPUnit tests: test type selection, attributes, DDEV env vars
+- `drupal-phpunit` — writing/modifying PHPUnit tests: test type selection, attributes, DDEV env vars
 - `playwright-cli` — browser automation for the e2e test phase; pulled from `microsoft/playwright-cli` at setup time (not part of this package — update with `npx skills update`)

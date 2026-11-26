@@ -7,7 +7,7 @@ Guidance for Claude Code working on this repo.
 **somu-kit**: Abhisek's skills, as 1 Claude Code plugin marketplace with 3 layers. A layer only uses layers below it: `drupal-contrib` → `drupal` → `core`. `core` never mentions Drupal.
 
 - `core/` is a Claude Code plugin (`core@somu-kit`). See README.md.
-- `drupal/` and `drupal-contrib/` hold the Drupal contribution toolkit. Today it ships through the npx installer, not as plugins: `npx github:abhisekmazumdar/somu-kit` (or `npx /path/to/local/clone`, see drupal-contrib/README.md) installs both folders' skills plus the agents, hooks and MCP config into a Drupal workspace for Claude Code and Codex. Not a Drupal project: no PHP, no Composer, no web server.
+- `drupal/` and `drupal-contrib/` are Claude Code plugins too (`drupal@somu-kit` depends on `core`; `drupal-contrib@somu-kit` on both), turned on per workspace. The npx installer (`npx github:abhisekmazumdar/somu-kit`, or `npx /path/to/local/clone`) still writes what a plugin can't: permissions, hooks, MCP config, the `CLAUDE.md` block, and all of Codex. With `--plugins` it skips the skill and agent copies for Claude Code; without it, it copies both folders' skills and the agents, as before. Not a Drupal project: no PHP, no Composer, no web server.
 
 Commits: never add `Co-Authored-By` or other AI credit lines.
 
@@ -39,6 +39,16 @@ installer/
 
 The installer flattens `drupal/skills/` and `drupal-contrib/skills/` into 1 skills root in the target workspace. It never installs `core/`.
 
+### Paths: `${CLAUDE_PLUGIN_ROOT}` in source, rewritten for copies
+
+A skill or agent names a file in its own plugin as `${CLAUDE_PLUGIN_ROOT}/skills/<name>/<file>`. Claude Code fills it in for plugins (skill and agent bodies both, verified on 2.1.332). Copy installs rewrite it in `install.js` `localPaths()`: `.claude/skills/` or `.agents/skills/` for the client's own copies, `<skills-root>/` in the shared `.drupal-contrib/agents/`. `<skills-root>/` stays only for external skills, which are always copied. Rules, all in `tests/skills.test.js`:
+
+- Never point into another plugin: plugins live in separate cache folders. Use the other layer's skill by name (agents preload it with `skills:`, which works across plugins).
+- Write `python3 ${CLAUDE_PLUGIN_ROOT}/skills/x/y.py` unquoted. A quoted path never matches a `Bash(python3 path *)` rule.
+- Plugin mode approves scripts with `pluginRules()`: each `Bash(python3 .claude/skills/<skill>/<script> *)` rule in `settings.json.template` gets a twin for `<config>/plugins/cache/somu-kit/<plugin>/*/skills/...` (the cache path holds the version). A skill's own `allowed-tools` only works in the main session, not in an agent that preloads it.
+- `agents/` holds only agent files. The plugin loader reads every `.md` under it as an agent, so reference files live in a skill's `references/`.
+- In plugin mode agents are `drupal-contrib:<name>`. A bare agent name is rejected; bare skill names and slash commands work.
+
 Short paths below: `bin/`, `templates/` and `tests/` are under `installer/`. `skills/<name>` is in `drupal/skills/` or `drupal-contrib/skills/`. `agents/` is `drupal-contrib/agents/`.
 
 ---
@@ -49,7 +59,8 @@ No build step, no `npm run` scripts. CI (`.github/workflows/ci.yml`) runs these;
 
 ```bash
 node --check installer/bin/*.js
-node --test installer/tests/*.test.js
+node --test installer/tests/*.test.js tests/*.test.js
+claude plugin validate .
 grep -rn "{{" drupal/skills drupal-contrib/skills drupal-contrib/agents   # must be empty — {{VAR}} only belongs in templates/
 node -e "JSON.parse(require('fs').readFileSync('installer/templates/settings.json.template','utf8').replace(/\{\{[A-Z_]+\}\}/g,'placeholder'))"
 ```
@@ -80,7 +91,7 @@ Every `skills/<name>/SKILL.md` works without knowing the specific Drupal project
 
 `bin/install.js`'s `writer()` treats installed files three ways, chosen by whether a project is ever expected to hand-edit that file. **Adding a new installed file? Pick one explicitly** — don't assume `write`/`copy`'s conflict-safe default fits.
 
-- **Force-managed** (`forceWrite`/`copyManaged`): `skills/`, `agents/` (every rendered form), the Git-guardrail hook scripts. Pure toolkit output, never customized per project — every re-run makes the destination match this package version exactly. A local edit gets silently overwritten; a skill/agent removed upstream gets deleted from the project (only paths this toolkit itself wrote, per the lockfile's `files` map — a user's own file under the same directory is never touched). Sole exception: paths (or `/`-terminated prefixes) in the lockfile's `localOverrides` array — `forceWrite` keeps a differing existing copy and routes the shipped content through the same `propose()` stash `write()` uses, doesn't re-create one the project deleted after a previous install wrote it, and `prune()` never deletes them. External skills share the skills root, so `installTargets` passes their recorded paths as `preserve` to the skills `copyManaged` — otherwise every re-run prunes them (permanently under `--skip-external` or offline). `setup.js` carries `localOverrides` forward when it rewrites the lockfile. `copyManaged` takes optional `renameFile`/`transformContent` (the Codex `.md`→`.toml` conversion), a `shallow` flag (skip an agent's `references/` subfolder), and `preserve` (paths a sibling `forceWrite` call owns — skip these or `prune()` deletes-then-lets-them-get-readded, which reorders the lockfile's `files` map and breaks idempotency).
+- **Force-managed** (`forceWrite`/`copyManaged`): `skills/`, `agents/` (every rendered form), the Git-guardrail hook scripts. Pure toolkit output, never customized per project — every re-run makes the destination match this package version exactly. A local edit gets silently overwritten; a skill/agent removed upstream gets deleted from the project (only paths this toolkit itself wrote, per the lockfile's `files` map — a user's own file under the same directory is never touched). Sole exception: paths (or `/`-terminated prefixes) in the lockfile's `localOverrides` array — `forceWrite` keeps a differing existing copy and routes the shipped content through the same `propose()` stash `write()` uses, doesn't re-create one the project deleted after a previous install wrote it, and `prune()` never deletes them. External skills share the skills root, so `installTargets` passes their recorded paths as `preserve` to the skills `copyManaged` — otherwise every re-run prunes them (permanently under `--skip-external` or offline). `setup.js` carries `localOverrides` forward when it rewrites the lockfile. `copyManaged` takes optional `renameFile`/`transformContent` (the Codex `.md`→`.toml` conversion and the `localPaths()` rewrite), a `shallow` flag (top-level files only), and `preserve` (paths a sibling `forceWrite` call owns — skip these or `prune()` deletes-then-lets-them-get-readded, which reorders the lockfile's `files` map and breaks idempotency).
 - **Merged** (`upsertBlock`): `CLAUDE.md`/`AGENTS.md`. These commonly pre-exist with the project's own content, so the toolkit's block is wrapped in `<!-- drupal-contrib-claude-skills:begin/end -->` markers and upserted in place (appended if no markers yet). Everything outside the block is the project's own, never touched. If `CLAUDE.md`/`AGENTS.md` resolve to the same real file (one symlinked to the other), treat the whole shared file as off-limits — propose instead of force-writing, for both targets, or whichever target runs first mutates it before the second ever notices it's shared.
 - **Preserved** (`write`/`copy`): everything else — `.claude/settings.json`, `.mcp.json`, `.codex/config.toml`/`hooks.json`/rules, `.drupal-contrib/context.md`. A package update applies automatically only if the file on disk still matches what the toolkit last wrote (per lockfile content hash); a hand-edited file is left alone and the new version is stashed at `.drupal-contrib/proposals/<path>` for manual merge.
 
@@ -134,7 +145,7 @@ Every review — the light one in `drupal-issue-start` Phase 2.5, the full one i
 
 ### `references/` subfolder — reference material, not procedure
 
-Keep `agents/*.md` and `SKILL.md` lean, but never fragment a sequential gated procedure — `drupal-issue-agent`'s A1-A11/B1-B5 phases stay inline, splitting them would break the agent's ability to track which phase it's resuming from after a blocker `[PAUSE]`. What belongs in `references/`: a lookup consulted only on one specific branch, not the always-active flow — e.g. `agents/drupal-issue-agent/references/ci-failure-patterns.md`, read only when A1 finds a failing pipeline. No `setup.js` changes needed; `copyManaged` already recurses. Before adding one: is this really a rare-branch lookup, or core sequence/an always-consulted checklist (like A7's)? If the latter, keep it inline.
+Keep `agents/*.md` and `SKILL.md` lean, but never fragment a sequential gated procedure — `drupal-issue-agent`'s A1-A11/B1-B5 phases stay inline, splitting them would break the agent's ability to track which phase it's resuming from after a blocker `[PAUSE]`. What belongs in `references/`: a lookup consulted only on one specific branch, not the always-active flow — e.g. `skills/drupal-gitlab/references/ci-failure-patterns.md`, read only when A1 finds a failing pipeline, or `skills/drupal-issue-start/references/security-issues.md`, read only for a security work item (it holds both the skill's and the agent's procedure; the hard rules stay inline). Put it under a skill, never under `agents/`. No `setup.js` changes needed; `copyManaged` already recurses. Before adding one: is this really a rare-branch lookup, or core sequence/an always-consulted checklist (like A7's)? If the latter, keep it inline.
 
 ### Security issues stay private
 
@@ -207,7 +218,7 @@ Re-running is non-interactive once the lockfile exists.
 
 `drupalorg-cli` 0.12.0 exposes 17 read-only tools. Verified 2026-09-10 against a live migrated issue (`ai` project, nid 3540491):
 
-- **Works:** `gitlab_issue_show` (full GitLab work-item URL, bypasses nid→project lookup) — title, description, state, labels, timestamps. No comments; `fetch_issue_notes.py` (`drupal-gitlab-inline-comments`) still needed for those.
+- **Works:** `gitlab_issue_show` (full GitLab work-item URL, bypasses nid→project lookup) — title, description, state, labels, timestamps. No comments; `fetch_issue_notes.py` (`drupal-gitlab-comments`) still needed for those.
 - `issue_show`'s new `withComments` param (0.12.0) returns full comment bodies, but only for **non-migrated** issues — its `nid` param is still a bare `^\d+$` pattern, no project prefix, so it still errors on a migrated nid.
 - **Still broken for migrated issues:** `mr_list`, `mr_status`, `mr_files`, `issue_get_fork` all error (`-32603`) on a migrated nid. The underlying CLI *commands* were fixed in 0.11.0 (resolve correctly given `<project>#<nid>`), but the MCP tool schemas were never updated to expose a project-prefix field — any MCP tool that resolves project from `nid` alone inherits this gap. `drupal-issue-start`'s `glab mr list --search` Bash fallback (Phase 2) is still the only working path for MR discovery on migrated issues — don't replace it with an MCP call until the schemas gain a project-prefix param (tracked at [mglaman/drupalorg-cli](https://github.com/mglaman/drupalorg-cli); re-check `tools/list` after future releases).
 - Not yet verified against a non-migrated issue — assume nid-based tools work there, since the bug is migrated-nid-specific.

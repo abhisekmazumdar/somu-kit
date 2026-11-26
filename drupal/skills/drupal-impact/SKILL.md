@@ -23,16 +23,14 @@ only — every consumer is a line it found in a file. The external
 `blast-radius` skill (user-run) reasons about breakage grep can't show; this
 report is its starting map, so its effort goes on the hard part.
 
-Resolve the script relative to this installed `SKILL.md`; `<skills-root>`
-is the parent of this skill directory, supplied by the active client's
-workspace instructions. Run `--help` for every flag.
+Run `--help` for every flag.
 
 ```bash
-python3 "<skills-root>/drupal-impact/drupal_impact.py" <module_dir> \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-impact/drupal_impact.py <module_dir> \
   --base origin/<target-branch> --scan <webroot>/modules/contrib --format all --out <dir>
 # planning, no diff: FQCN or short name (Class::method), service ID, route,
 # permission, plugin ID, config name or hook name
-python3 "<skills-root>/drupal-impact/drupal_impact.py" <module_dir> --symbols A,B --scan <webroot>/modules/contrib
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/drupal-impact/drupal_impact.py <module_dir> --symbols A,B --scan <webroot>/modules/contrib
 ```
 
 ## Steps for the agent
