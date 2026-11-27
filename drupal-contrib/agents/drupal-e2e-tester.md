@@ -137,8 +137,17 @@ ddev drush user:role:add editor e2e_editor
 playwright-cli open "$(ddev drush uli --name=e2e_editor --uri=<site-url>)"
 ```
 
-Use one browser session per role. For anonymous-access scenarios (403 checks),
-open a fresh session without visiting any login link.
+Use one named browser session per role (`playwright-cli -s=e2e-admin ...`,
+`-s=e2e-editor ...`). For anonymous-access scenarios (403 checks), open a fresh
+session without visiting any login link.
+
+**Your own browser only.** Always `open` a new Playwright browser. Never
+`attach` to the user's Chrome: it carries their real logins and tabs, and a
+test run must not act as them. Close your sessions at the end (`close`).
+
+**Save tokens.** Snapshots land in files. To check an expectation, search the
+snapshot with `find "<exact label>"` instead of reading the whole page; on a
+large admin page that's a few lines instead of thousands.
 
 **Self-signed certificate.** DDEV sites use a self-signed cert — if navigation
 fails on TLS, consult the skill's session/config options for ignoring HTTPS

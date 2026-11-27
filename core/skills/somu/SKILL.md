@@ -25,6 +25,7 @@ generic one. Don't open skill files just to choose.
 | Choose between approaches | `long-term-maintainability`, plus `community-first` in open source |
 | Write anything posted as the user | the project's writing skill for that platform if there is one, then `write-like-abhisek` |
 | Open source decision (scope, release, who does what) | `community-first` |
+| Anything in a browser (check a page, use a logged-in site, debug a slow page) | `browser-access` → the tool it picks → `prove-it-works` |
 
 No row fits? Match on skill descriptions. Nothing fits? Say so; don't force a
 pick.

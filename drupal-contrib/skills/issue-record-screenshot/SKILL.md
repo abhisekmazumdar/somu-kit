@@ -36,13 +36,15 @@ Format: `YYYY-MM-DD-HHmmss-<label>.png`
 
 ## Step 3 — Check browser connection
 
-Select the available integration without inventing tool names:
+Select the available integration without inventing tool names. When the `browser-access` skill is available, follow its choice and safety rules:
 
+- A tab in the user's own Chrome, Playwright CLI: `playwright-cli -s=real attach --cdp=ws://127.0.0.1:9222/devtools/browser`, then `tab-list` and `tab-select` the tab the user named. `detach` when done, never `close`.
+- A tab in the user's own Chrome, Chrome DevTools MCP: `list_pages`, then `take_screenshot` with that page and `filePath`.
 - Claude Code with Claude-in-Chrome: inspect the connected tabs using that integration.
 - Codex with browser/computer tools: load their instructions and inspect connected tabs.
 - Either client with an existing Playwright CLI session: load the installed `playwright-cli` skill and inspect that session.
 
-Use the tab/session the user identified. A new Playwright browser does not inherit the user's open tabs or authentication. If the requested session is unavailable, explain the missing connection and stop instead of capturing a different page.
+Use the tab/session the user identified. A new Playwright browser (`open`) does not inherit the user's open tabs or authentication; an attached one does. If the requested session is unavailable, explain the missing connection and stop instead of capturing a different page.
 
 ---
 

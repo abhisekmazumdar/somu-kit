@@ -24,6 +24,7 @@ Rule: a layer only uses layers below it. `drupal-contrib` → `drupal` → `core
 | `long-term-maintainability` | Pick what the next maintainer can live with |
 | `prove-it-works` | Verify the real thing, attach proof |
 | `community-first` | Open source decisions |
+| `browser-access` | Which browser tool, logged-in sessions, Chrome profiles |
 
 Skills are namespaced by plugin: `/core:skateboard-mvp`.
 
