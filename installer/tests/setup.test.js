@@ -50,7 +50,11 @@ for (const target of ['claude-code', 'codex', 'both']) {
       const parse = spawnSync('python3', ['-c', 'import pathlib,tomllib; root=pathlib.Path(".codex"); files=list(root.rglob("*.toml")); assert len(files)==5; [tomllib.loads(p.read_text()) for p in files]'], { cwd, encoding: 'utf8' });
       assert.equal(parse.status, 0, parse.stderr);
       assert.match(read(cwd, '.agents/skills/drupal-clone-contrib/agents/openai.yaml'), /allow_implicit_invocation: false/);
-      assert.match(read(cwd, '.codex/agents/drupal-e2e-tester.toml'), /Never create, edit, or delete module code/);
+      const tester = read(cwd, '.codex/agents/drupal-e2e-tester.toml');
+      assert.match(tester, /Never create, edit, or delete module code/);
+      assert.match(tester, /write output files where the procedure permits/);
+      assert.doesNotMatch(tester, /edit existing files where the procedure permits|delegate work to native subagents/);
+      assert.doesNotMatch(tester, /You may only use these tools/);
       const hooks = JSON.parse(read(cwd, '.codex/hooks.json'));
       assert.equal(hooks.hooks.PreToolUse[0].matcher, '^Bash$');
     }
@@ -260,6 +264,10 @@ test('Codex agent generation preserves complete procedures and escapes TOML', t 
   assert.equal(parsed.status, 0, parsed.stderr);
   const agent = JSON.parse(parsed.stdout);
   assert.equal(agent.name, 'drupal-issue-agent');
+  assert.match(agent.developer_instructions, /- run shell commands within the procedure/);
+  assert.match(agent.developer_instructions, /- edit existing files where the procedure permits/);
+  assert.match(agent.developer_instructions, /- delegate work to native subagents/);
+  assert.match(agent.developer_instructions, /- call read_doc on the agent-module-docs MCP server when available/);
   assert.ok(agent.developer_instructions.endsWith(body.replace(/^---\n[\s\S]*?\n---\n/, '')));
   assert.equal(agent.model, undefined);
 });

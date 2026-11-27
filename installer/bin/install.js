@@ -296,6 +296,20 @@ function writer(cwd, previous = {}, dryRun = false, overrides = []) {
   return { write, copy, forceWrite, copyManaged, upsertBlock, prune, files, log };
 }
 
+// Codex agents inherit the session's tools. Translate the Claude allowlist
+// into instructions about what the agent may do with those tools.
+const agentToolActions = {
+  Read: 'read local files',
+  Glob: 'find local files',
+  Grep: 'search local file contents',
+  Write: 'write output files where the procedure permits',
+  Edit: 'edit existing files where the procedure permits',
+  Bash: 'run shell commands within the procedure’s limits',
+  TodoWrite: 'track task progress',
+  WebFetch: 'fetch web pages',
+  Agent: 'delegate work to native subagents',
+};
+
 function agentToml(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!match) throw new Error('Invalid agent frontmatter');
@@ -304,15 +318,18 @@ function agentToml(content) {
   const description = metadata.match(/^description: >\n((?:[ \t]+[^\n]*\n)+)/m)?.[1].trim().replace(/\s+/g, ' ');
   if (!name || !description) throw new Error('Missing agent name or description');
   const dependencies = [...metadata.matchAll(/^  - (\S+)$/gm)].map(m => m[1]);
-  const tools = metadata.match(/^tools:\s*(.+)$/m)?.[1].trim();
-  // Codex's .toml agent format has no structural tool-allowlist field, so the
-  // frontmatter `tools:` restriction (e.g. drupal-e2e-tester's report-only
-  // guarantee — no Edit) can only be carried forward as an explicit,
-  // enumerated instruction, not dropped silently.
-  const toolsClause = tools
-    ? `You may only use these tools: ${tools}. Never use any other tool, including file-edit or patch-apply tools, even if one would otherwise seem available or convenient.`
+  const tools = metadata.match(/^tools:[ \t]*(.+)$/m)?.[1].trim();
+  const actions = tools ? tools.split(',').map(entry => {
+    const tool = entry.trim();
+    if (Object.hasOwn(agentToolActions, tool)) return agentToolActions[tool];
+    const mcp = tool.match(/^mcp__(.+?)__(.+)$/);
+    if (mcp) return `call ${mcp[2]} on the ${mcp[1]} MCP server when available`;
+    throw new Error(`No Codex action defined for ${tool} in agent ${name}`);
+  }) : [];
+  const toolsClause = actions.length
+    ? `Use native Codex tools. Limit your actions to the following, including when using the shell.\n${actions.map(action => `- ${action}`).join('\n')}`
     : '';
-  const instructions = `Read .drupal-contrib/context.md before acting. Resolve <skills-root> to .agents/skills and load the relevant installed skills by name. Use Codex tools, not Claude tool names. ${toolsClause} Dependencies: ${dependencies.join(', ')}. If an upstream skill requires unavailable tools, report that limitation and use a supported equivalent only when it preserves the requested behavior. Delegate the named roles using native subagents; if custom roles are unavailable, pass the full corresponding .drupal-contrib/agents/<name>.md procedure to a fresh subagent. Never silently replace independent testing with self-verification.\n\n${body}`;
+  const instructions = `Read .drupal-contrib/context.md before acting. Resolve <skills-root> to .agents/skills and load the relevant installed skills by name. If an upstream skill requires unavailable tools, report that limitation and use a supported equivalent only when it preserves the requested behavior.\n\n${toolsClause}\n\nSkill dependencies are ${dependencies.join(', ')}. When your procedure calls for delegation, use the named native subagent. If that role is unavailable, give a fresh subagent the full procedure from .drupal-contrib/agents/<name>.md. Keep testing independent of implementation.\n\n${body}`;
   // JSON basic strings are valid TOML strings, including escaped newlines.
   return `name = ${JSON.stringify(name)}\ndescription = ${JSON.stringify(description)}\ndeveloper_instructions = ${JSON.stringify(instructions)}\n`;
 }
