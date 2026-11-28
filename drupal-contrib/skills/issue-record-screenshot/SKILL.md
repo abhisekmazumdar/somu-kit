@@ -38,8 +38,9 @@ Format: `YYYY-MM-DD-HHmmss-<label>.png`
 
 Select the available integration without inventing tool names. When the `browser-access` skill is available, follow its choice and safety rules:
 
-- A tab in the user's own Chrome, Playwright CLI: `playwright-cli -s=real attach --cdp=ws://127.0.0.1:9222/devtools/browser`, then `tab-list` and `tab-select` the tab the user named. `detach` when done, never `close`.
-- A tab in the user's own Chrome, Chrome DevTools MCP: `list_pages`, then `take_screenshot` with that page and `filePath`.
+- A tab in the agent Chrome, Playwright CLI: `playwright-cli -s=agent attach --cdp=http://127.0.0.1:9223`, then `tab-list` and `tab-select` the tab. `detach` when done, never `close`.
+- A tab in the agent Chrome, Chrome DevTools MCP: `list_pages`, then `take_screenshot` with that page and `filePath`.
+- A tab in the user's own Chrome, Playwright CLI: `playwright-cli -s=real attach --cdp=ws://127.0.0.1:9222/devtools/browser` (the user clicks Allow), then `tab-list` and `tab-select` the tab the user named. `detach` when done, never `close`.
 - Claude Code with Claude-in-Chrome: inspect the connected tabs using that integration.
 - Codex with browser/computer tools: load their instructions and inspect connected tabs.
 - Either client with an existing Playwright CLI session: load the installed `playwright-cli` skill and inspect that session.

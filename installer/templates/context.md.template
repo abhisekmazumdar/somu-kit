@@ -68,7 +68,7 @@ The README is the **long-term memory** for each issue. It persists across sessio
 1. **Start every issue session with `/drupal-issue-start <url>`** — it loads the record, fetches live state, and presents a report before any work begins.
 2. After every session, **`/issue-record-update <nid>`** logs what was done (no confirmation prompt — writes directly).
 3. To catch up after time away, use **`/drupal-issue-catchup <nid>`** instead of re-running issue-start.
-4. Screenshots go in `issues/<nid>/screenshots/` via **`/issue-record-screenshot`**, using the active client's connected browser integration, an existing Playwright session, or Playwright/Chrome DevTools MCP attached to the user's Chrome (the `browser-access` skill picks one).
+4. Screenshots go in `issues/<nid>/screenshots/` via **`/issue-record-screenshot`**, using the active client's connected browser integration, an existing Playwright session, or Playwright/Chrome DevTools MCP attached to the agent Chrome or the user's Chrome (the `browser-access` skill picks one).
 5. Drafted comments are saved to `issues/<nid>/drafts/` via the **`drupalorg-writing`** skill.
 
 ---
